@@ -8,7 +8,7 @@ import time
 """
 
 try: # for local run
-    os.chdir("/Users/melaniebernhardt/Documents/RESEARCH_PROJECT/")
+    os.chdir("/Users/melaniebernhardt/Documents/brain_project/")
     cwd = os.getcwd()
     data_folder = cwd + '/DATA/'
 except: # for cluster
@@ -179,12 +179,12 @@ def augment(name='std'):
     return(X_new, Y_new)
 
 if __name__=='__main__':
-    prepare_X_std_freq()
-    prepare_X_one_freq()
-    prepare_X_mine(channels_per_freq=250)
-    prepare_X_std_freq_channels(channels_per_freq=250)
-    prepare_X_std_freq_channels(channels_per_freq=500)
-    prepare_X_std_freq_channels(channels_per_freq=1000)
-    prepare_X_std_freq_channels(channels_per_freq=2000)
-    augment('std')
+    #prepare_X_std_freq()
+    #prepare_X_one_freq()
+    #prepare_X_mine(channels_per_freq=250)
+    #prepare_X_std_freq_channels(channels_per_freq=250)
+    #prepare_X_std_freq_channels(channels_per_freq=500)
+    #prepare_X_std_freq_channels(channels_per_freq=1000)
+    #prepare_X_std_freq_channels(channels_per_freq=2000)
+    augment('cluster_alpha_mean_2')
     #augment('X_sel') # first run feature extraction.
