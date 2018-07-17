@@ -1,0 +1,4 @@
+/DATA/
+*.npy
+logs_extended/
+.DS_Store
