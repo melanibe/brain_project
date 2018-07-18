@@ -10,6 +10,7 @@ from sklearn.ensemble import RandomForestClassifier
 import logging
 import time 
 import argparse
+from build_features import augment
 
 """ Runs the 3 baselines gridsearch of my first classification report.
 """
@@ -18,7 +19,7 @@ import argparse
 parser = argparse.ArgumentParser()
 parser.add_argument("-n", "--njobs", help="number of jobs", type=int)
 parser.add_argument("-t", "--type", help="choose the type of freq aggregation")
-parser.add_argument("-y", "--y", help="choose y")
+parser.add_argument("-a", "--augment", help="choose whether to augment training data or not",type=bool)
 parser.add_argument("-s", "--test_size", help="choose test size in prop", type=float)
 args = parser.parse_args()
 type_agg = args.type
@@ -26,17 +27,18 @@ type_agg = args.type
 if args.test_size:
     test_size = args.test_size
 else:
-    test_size = 0.1
+    test_size = 0.3
 
 if args.njobs:
     njobs = args.njobs
 else:
     njobs = 3
 
-if args.y:
-    y = args.y
+if args.augment:
+    augmented = args.augment
 else:
-    y = 'y'
+    augmented = False
+
 
 try: #for local run
     os.chdir("/Users/melaniebernhardt/Documents/RESEARCH PROJECT/")
@@ -70,17 +72,21 @@ logger.addHandler(file_handler)
 
 
 ############ LOADING DATA #############
-logger.info("The features matrice is {}".format(type_agg))
+logger.info("The feature matrix is {}".format(type_agg))
 try:
     X = np.load(cwd+"/{}.npy".format(type_agg))
-    Y = np.load(cwd+"/{}.npy".format(y))
+    Y = np.load(cwd+"/y.npy")
     logger.info("loaded X and y")
 except:
     logger.error("Not found. Should prepare X and Y first.")
 n,m = np.shape(X)
 
+# distinguish only REM-nonREM
 Y_main = [1 if ((y==1) or (y==2)) else 0 for y in Y]
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y_main, test_size=test_size, random_state=42)
+if augmented:
+    logger.info("Augmenting the data")
+    X_train, Y_train = augment(X_train, Y_train)
 logger.info("Shape of train features matrix is {}".format(np.shape(X_train)))
 
 
@@ -98,6 +104,7 @@ logger.info("Results for SVM alone and type {}: \n".format(type_agg)+l)
 
 
 ################ GRIDSEARCH PCA+SVC ###############
+"""
 pipePCA = Pipeline([ ('var', VarianceThreshold(threshold=0)),('pca', PCA()), ('svm', SVC()) ])
 param_grid = [ {'pca__n_components':  [5, 10, 50, 100], 'svm__kernel': ['linear']}]
 logger.info("Beginning gridsearch PCA + SVM")
@@ -121,3 +128,4 @@ results =  pd.DataFrame.from_dict(grid.cv_results_)
 var_names = [v for v in results.columns.values if (("mean_test_" in v) or ("std_test_" in v))] + [v for v in results.columns.values if ("param_" in v)]
 l = results[var_names].sort_values("mean_test_f1", ascending=False).to_string(index=False)
 logger.info("Results for RF pipeline and type {}: \n".format(type_agg)+l)
+"""
