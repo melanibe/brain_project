@@ -16,6 +16,9 @@ from build_features import augment
 """
 
 ############## PARAMS SETUP ###############
+gridsearch_scores = ['roc_auc','accuracy','f1']
+best_score=False
+#best_score = 'roc_auc'
 parser = argparse.ArgumentParser()
 parser.add_argument("-n", "--njobs", help="number of jobs", type=int)
 parser.add_argument("-t", "--type", help="choose the type of freq aggregation")
@@ -85,7 +88,7 @@ n,m = np.shape(X)
 Y_main = [1 if ((y==1) or (y==2)) else 0 for y in Y]
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y_main, test_size=test_size, random_state=42)
 if augmented:
-    logger.info("Augmenting the data")
+    logger.info("Augmenting the training data")
     X_train, Y_train = augment(X_train, Y_train)
 logger.info("Shape of train features matrix is {}".format(np.shape(X_train)))
 
@@ -94,7 +97,7 @@ logger.info("Shape of train features matrix is {}".format(np.shape(X_train)))
 pipeSVC = Pipeline([ ('var', VarianceThreshold(threshold=0)), ('svm', SVC()) ])
 param_grid = [ {'svm__kernel': ['rbf', 'linear'], 'svm__C':[1, 10]}]
 logger.info("Beginning gridsearch svm")
-grid = GridSearchCV(pipeSVC, cv=3, n_jobs=njobs, param_grid=param_grid, scoring=['accuracy','f1'], refit=False, verbose=2)
+grid = GridSearchCV(pipeSVC, cv=3, n_jobs=njobs, param_grid=param_grid, scoring=gridsearch_scores, refit=best_score, verbose=2)
 grid.fit(X_train, Y_train)
 logger.info("Gridsearch is done")
 results =  pd.DataFrame.from_dict(grid.cv_results_)
@@ -108,7 +111,7 @@ logger.info("Results for SVM alone and type {}: \n".format(type_agg)+l)
 pipePCA = Pipeline([ ('var', VarianceThreshold(threshold=0)),('pca', PCA()), ('svm', SVC()) ])
 param_grid = [ {'pca__n_components':  [5, 10, 50, 100], 'svm__kernel': ['linear']}]
 logger.info("Beginning gridsearch PCA + SVM")
-grid = GridSearchCV(pipePCA, cv=3, n_jobs=njobs, param_grid=param_grid, scoring=['accuracy','f1'], refit=False, verbose=2)
+grid = GridSearchCV(pipePCA, cv=3, n_jobs=njobs, param_grid=param_grid, scoring=gridsearch_scores, refit=best_score, verbose=2)
 grid.fit(X_train, Y_train)
 logger.info("Gridsearch is done")
 results =  pd.DataFrame.from_dict(grid.cv_results_)
@@ -121,7 +124,7 @@ logger.info("Results for PCA + SVM and type {}: \n".format(type_agg)+l)
 pipeRF = Pipeline([('var', VarianceThreshold(threshold=0)),('Kbest', SelectKBest()), ('rf', RandomForestClassifier())])
 param_grid = [{'Kbest__k': [300, 500, 1000], 'rf__n_estimators': [3000], 'rf__min_samples_split':[10, 30]}]
 logger.info("Beginning gridsearch with variance threshold + KBest + RF")
-grid = GridSearchCV(pipeRF, cv=3, n_jobs=njobs, param_grid=param_grid, scoring=['accuracy','f1'], refit=False, verbose=2)
+grid = GridSearchCV(pipeRF, cv=3, n_jobs=njobs, param_grid=param_grid, scoring=gridsearch_scores, refit=best_score, verbose=2)
 grid.fit(X_train, Y_train)
 logger.info("Gridsearch is done")
 results =  pd.DataFrame.from_dict(grid.cv_results_)
