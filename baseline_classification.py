@@ -6,6 +6,7 @@ from sklearn.model_selection import GridSearchCV, train_test_split
 from sklearn.pipeline import Pipeline
 from sklearn.svm import LinearSVC, SVC
 from sklearn.feature_selection import SelectKBest, VarianceThreshold
+from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 import logging
 import time 
@@ -95,6 +96,18 @@ logger.info("Shape of train features matrix is {}".format(np.shape(X_train)))
 
 ################ GRIDSEARCH SVC ###############
 pipeSVC = Pipeline([ ('var', VarianceThreshold(threshold=0)), ('svm', SVC()) ])
+param_grid = [ {'svm__kernel': ['rbf', 'linear'], 'svm__C':[1, 10]}]
+logger.info("Beginning gridsearch svm")
+grid = GridSearchCV(pipeSVC, cv=3, n_jobs=njobs, param_grid=param_grid, scoring=gridsearch_scores, refit=best_score, verbose=2)
+grid.fit(X_train, Y_train)
+logger.info("Gridsearch is done")
+results =  pd.DataFrame.from_dict(grid.cv_results_)
+var_names = [v for v in results.columns.values if (("mean_test_" in v) or ("std_test_" in v))] + [v for v in results.columns.values if ("param_" in v)]
+l = results[var_names].sort_values("mean_test_{}".format(best_score), ascending=False).to_string(index=False)
+logger.info("Results for SVM alone and type {}: \n".format(type_agg)+l)
+
+################ GRIDSEARCH NORMALIZED SVC ###############
+pipeSVC = Pipeline([ ('var', VarianceThreshold(threshold=0)), ('std', StandardScaler()), ('svm', SVC()) ])
 param_grid = [ {'svm__kernel': ['rbf', 'linear'], 'svm__C':[1, 10]}]
 logger.info("Beginning gridsearch svm")
 grid = GridSearchCV(pipeSVC, cv=3, n_jobs=njobs, param_grid=param_grid, scoring=gridsearch_scores, refit=best_score, verbose=2)
