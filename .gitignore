@@ -2,3 +2,4 @@
 *.npy
 logs_extended/
 .DS_Store
+__pycache__
