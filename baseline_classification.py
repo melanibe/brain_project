@@ -8,6 +8,8 @@ from sklearn.svm import LinearSVC, SVC
 from sklearn.feature_selection import SelectKBest, VarianceThreshold
 from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
+from sklearn.dummy import DummyClassifier
+
 import logging
 import time 
 import argparse
@@ -93,6 +95,19 @@ if augmented:
     X_train, Y_train = augment(X_train, Y_train)
 logger.info("Shape of train features matrix is {}".format(np.shape(X_train)))
 
+################ GRIDSEARCH BASELINE ##############
+# use the same cv and calculate the accuracy on dummy classifier
+idiot = DummyClassifier(constant=0)
+param_grid = [ {'strategy': ['uniform', 'constant']}]
+logger.info("Beginning gridsearch svm")
+grid = GridSearchCV(idiot, cv=3, n_jobs=njobs, param_grid=param_grid, scoring=gridsearch_scores, refit=False, verbose=2)
+grid.fit(X_train, Y_train)
+logger.info("Gridsearch is done")
+results =  pd.DataFrame.from_dict(grid.cv_results_)
+var_names = [v for v in results.columns.values if (("mean_test_" in v) or ("std_test_" in v))] + [v for v in results.columns.values if ("param_" in v)]
+l = results[var_names].sort_values("mean_test_roc_auc", ascending=False).to_string(index=False)
+logger.info("Results for baselines and feature matrix {} are: \n".format(type_agg)+l)
+
 
 ################ GRIDSEARCH SVC ###############
 pipeSVC = Pipeline([ ('var', VarianceThreshold(threshold=0)), ('svm', SVC()) ])
@@ -103,8 +118,8 @@ grid.fit(X_train, Y_train)
 logger.info("Gridsearch is done")
 results =  pd.DataFrame.from_dict(grid.cv_results_)
 var_names = [v for v in results.columns.values if (("mean_test_" in v) or ("std_test_" in v))] + [v for v in results.columns.values if ("param_" in v)]
-l = results[var_names].sort_values("mean_test_{}".format(best_score), ascending=False).to_string(index=False)
-logger.info("Results for SVM alone and type {}: \n".format(type_agg)+l)
+l = results[var_names].sort_values("mean_test_roc_auc", ascending=False).to_string(index=False)
+logger.info("Results for SVM alone and feature matrix {} are: \n".format(type_agg)+l)
 
 ################ GRIDSEARCH NORMALIZED SVC ###############
 pipeSVC = Pipeline([ ('var', VarianceThreshold(threshold=0)), ('std', StandardScaler()), ('svm', SVC()) ])
@@ -115,8 +130,8 @@ grid.fit(X_train, Y_train)
 logger.info("Gridsearch is done")
 results =  pd.DataFrame.from_dict(grid.cv_results_)
 var_names = [v for v in results.columns.values if (("mean_test_" in v) or ("std_test_" in v))] + [v for v in results.columns.values if ("param_" in v)]
-l = results[var_names].sort_values("mean_test_{}".format(best_score), ascending=False).to_string(index=False)
-logger.info("Results for SVM alone and type {}: \n".format(type_agg)+l)
+l = results[var_names].sort_values("mean_test_roc_auc", ascending=False).to_string(index=False)
+logger.info("Results for normalization and SVM alone on feature matrix {} are: \n".format(type_agg)+l)
 
 
 ################ GRIDSEARCH PCA+SVC ###############
