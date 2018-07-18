@@ -164,27 +164,25 @@ def prepare_X_std_freq_channels(channels_per_freq=200):
         return (X_new,Y)
 
 
-def augment(name='std'):
+def augment(X, Y, save=False, name=None):
     """ Performs data augmentation against class imbalance.
     """
-    Y = np.load(cwd+'/y.npy')
-    X = np.load(cwd+'/{}.npy'.format(name))
     idx = [True if ((y==1) or (y==2)) else False for y in Y]
     X_new = np.concatenate((X, X[idx,:]))
     print(np.shape(X_new))
     Y_new = np.concatenate((Y, np.repeat(1, np.sum(idx))))
     print(np.shape(Y_new))
-    np.save(cwd+'/{}_aug'.format(name), X_new)
-    np.save(cwd+'/Y_aug', Y_new)
+    if save:
+        np.save(cwd+'/{}_aug'.format(name), X_new)
+        np.save(cwd+'/Y_aug', Y_new)
     return(X_new, Y_new)
 
+
+# for testing
 if __name__=='__main__':
     #prepare_X_std_freq()
     #prepare_X_one_freq()
-    #prepare_X_mine(channels_per_freq=250)
-    #prepare_X_std_freq_channels(channels_per_freq=250)
-    #prepare_X_std_freq_channels(channels_per_freq=500)
-    #prepare_X_std_freq_channels(channels_per_freq=1000)
-    #prepare_X_std_freq_channels(channels_per_freq=2000)
-    augment('cluster_alpha_mean_2')
-    #augment('X_sel') # first run feature extraction.
+    X = np.load(cwd+'/X_delta.npy')
+    y = np.load(cwd+'/Y.npy')
+    c, _ = augment(X,y)
+    print(np.shape(c))
