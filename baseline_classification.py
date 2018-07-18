@@ -102,7 +102,7 @@ grid.fit(X_train, Y_train)
 logger.info("Gridsearch is done")
 results =  pd.DataFrame.from_dict(grid.cv_results_)
 var_names = [v for v in results.columns.values if (("mean_test_" in v) or ("std_test_" in v))] + [v for v in results.columns.values if ("param_" in v)]
-l = results[var_names].sort_values("mean_test_f1", ascending=False).to_string(index=False)
+l = results[var_names].sort_values("mean_test_{}".format(best_score), ascending=False).to_string(index=False)
 logger.info("Results for SVM alone and type {}: \n".format(type_agg)+l)
 
 
@@ -116,7 +116,7 @@ grid.fit(X_train, Y_train)
 logger.info("Gridsearch is done")
 results =  pd.DataFrame.from_dict(grid.cv_results_)
 var_names = [v for v in results.columns.values if (("mean_test_" in v) or ("std_test_" in v))] + [v for v in results.columns.values if ("param_" in v)]
-l = results[var_names].sort_values("mean_test_f1", ascending=False).to_string(index=False)
+l = results[var_names].sort_values("mean_test_{}".format(best_score), ascending=False).to_string(index=False)
 logger.info("Results for PCA + SVM and type {}: \n".format(type_agg)+l)
 
 
@@ -129,6 +129,6 @@ grid.fit(X_train, Y_train)
 logger.info("Gridsearch is done")
 results =  pd.DataFrame.from_dict(grid.cv_results_)
 var_names = [v for v in results.columns.values if (("mean_test_" in v) or ("std_test_" in v))] + [v for v in results.columns.values if ("param_" in v)]
-l = results[var_names].sort_values("mean_test_f1", ascending=False).to_string(index=False)
+l = results[var_names].sort_values("mean_test_{}".format(best_score), ascending=False).to_string(index=False)
 logger.info("Results for RF pipeline and type {}: \n".format(type_agg)+l)
 """
