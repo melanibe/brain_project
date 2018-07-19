@@ -14,7 +14,7 @@ import logging
 import time 
 import argparse
 
-""" Runs the 3 baselines gridsearch of my first classification report.
+""" Runs the gridsearches of classification report.
 """
 
 ############## PARAMS SETUP ###############
