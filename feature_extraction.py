@@ -8,13 +8,13 @@ from scipy.stats import ttest_ind
 
 cwd = os.getcwd()
 
-def extract_opt_2class(name='std', y = 'y'):
+def extract_opt_2class(name='std', y = 'y', graph=False):
     if name=='X':
         X,Y = prepare_X()
     else:
         Y = np.load(cwd+'/{}.npy'.format(y))
         X = np.reshape(np.load(cwd+'/{}.npy'.format(name)),(-1,4095,5))
-    _, _, nfreq = np.shape(X)
+    m, _, nfreq = np.shape(X)
     Y = [1 if ((y==1) or (y==2)) else 0 for y in Y]
     idx0 = [False if ((y==1) or (y==2)) else True for y in Y]
     idx1 = [True if ((y==1) or (y==2)) else False for y in Y]
@@ -34,7 +34,12 @@ def extract_opt_2class(name='std', y = 'y'):
     print(len(l))
     l = np.reshape(l, (-1))
     l = np.unravel_index(l, (4095,nfreq))
-    np.save(cwd+'/{}_sel'.format(name), np.reshape(X[:,l[0], l[1]],(-1,n)))
+    if graph:
+        X_new = np.zeros((m, 4095, nfreq))
+        X_new[:,l[0], l[1]] = X[:,l[0], l[1]]
+        return(X_new)
+    else:
+        np.save(cwd+'/{}_sel'.format(name), np.reshape(X[:,l[0], l[1]],(-1,n)))
 
 
 
