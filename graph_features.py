@@ -62,7 +62,8 @@ def prepare_graph_features(name='one', p_threshold=0.05):
     n,_,nfreq = np.shape(X)
     R = np.zeros((n, 4, nfreq, 90))
     for i in range(n):
-        print(i)
+        if (i%100==0):
+            print(i)
         res = prepare_single_graph_features(X[i])
         for j in range(4):
             R[i,j,:,:] = np.asarray(res[j])
