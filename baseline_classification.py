@@ -38,8 +38,6 @@ if args.njobs:
 else:
     njobs = 3
 
-
-
 try: #for local run
     os.chdir("/Users/melaniebernhardt/Documents/RESEARCH PROJECT/")
     cwd = os.getcwd()
