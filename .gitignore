@@ -1,5 +1,6 @@
 /DATA/
 *.npy
 logs_extended/
+logs/
 .DS_Store
 __pycache__
