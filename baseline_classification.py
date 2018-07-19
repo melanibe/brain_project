@@ -39,7 +39,7 @@ else:
     njobs = 3
 
 try: #for local run
-    os.chdir("/Users/melaniebernhardt/Documents/RESEARCH PROJECT/")
+    os.chdir("/Users/melaniebernhardt/Documents/brain_project/")
     cwd = os.getcwd()
     data_folder = cwd + '/DATA/'
 except: #for cluster run
@@ -129,7 +129,7 @@ logger.info("Results for PCA + SVM + class weigths and on orig feature matrix {}
 
 ################## GRIDSEARCH KBEST + RF ################
 pipeRF = Pipeline([('var', VarianceThreshold(threshold=0)), ('std', StandardScaler()), ('Kbest', SelectKBest()), ('rf', RandomForestClassifier())])
-param_grid = [{'Kbest__k': [50, 100, 500, 1000, 'all'], 'rf__n_estimators': [10000], 'rf__min_samples_split':[10, 30]}]
+param_grid = [{'Kbest__k': [50, 100, 500, 1000, 'all'], 'rf__n_estimators': [5000], 'rf__min_samples_split':[10, 30]}]
 logger.info("Beginning gridsearch with variance threshold + KBest + RF")
 grid = GridSearchCV(pipeRF, cv=3, n_jobs=njobs, param_grid=param_grid, scoring=gridsearch_scores, refit=best_score, verbose=2, return_train_score=False)
 grid.fit(X_train, Y_train)
@@ -141,7 +141,7 @@ logger.info("Results for RF pipeline and on original feature matrix {} are: \n".
 
 ################## GRIDSEARCH NOT_AUG + KBEST + RF ################
 pipeRF = Pipeline([('var', VarianceThreshold(threshold=0)),('std', StandardScaler()),('Kbest', SelectKBest()), ('rf', RandomForestClassifier())])
-param_grid = [{'Kbest__k': [50, 100, 500, 1000, 'all'], 'rf__n_estimators': [10000], 'rf__min_samples_split':[10, 30], 'rf__class_weight':['balanced']}]
+param_grid = [{'Kbest__k': [50, 100, 500, 1000, 'all'], 'rf__n_estimators': [5000], 'rf__min_samples_split':[10, 30], 'rf__class_weight':['balanced']}]
 logger.info("Beginning gridsearch with variance threshold + KBest + RF")
 grid = GridSearchCV(pipeRF, cv=3, n_jobs=njobs, param_grid=param_grid, scoring=gridsearch_scores, refit=best_score, verbose=2, return_train_score=False)
 grid.fit(X_train, Y_train)
