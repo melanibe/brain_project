@@ -87,30 +87,25 @@ def AcrossSubjectCV(estimator, X, Y):
     results.index=['roc_auc', 'accuracy']
     return(results, metrics)
 
-
+######### best with graph
 estimator_graph = Pipeline([('var', VarianceThreshold(threshold=0)), \
                             ('std', StandardScaler()), \
                             ('PerBest', SelectPercentile(percentile=50)), \
-                            ('rf', RandomForestClassifier(n_estimators=10, min_samples_split=30, n_jobs=njobs))])
-        
-
+                            ('rf', RandomForestClassifier(n_estimators=10000, min_samples_split=30, n_jobs=njobs))])        
 matrix_graph = np.load(cwd+'/graph_features/std_tresh0.05.npy')
 Y = np.load(cwd+'/y.npy')
 Y_main = [1 if ((y==1) or (y==2)) else 0 for y in Y]
-
-
 tmp = AcrossSubjectCV(estimator_graph, matrix_graph, Y_main)
 logger.info("Global results for best graph feature estimator from accross subject CV are: \n"+tmp[0].to_string())
 print(tmp[1])
 logger.info("Results per subject for best graph feature estimator from accross subject CV are: \n"+tmp[1].to_string())
 
-
+########### best with orig
 matrix_full = np.load(cwd+'/X_sel.npy')
 estimator_full = Pipeline([('var', VarianceThreshold(threshold=0)), \
                             ('std', StandardScaler()), \
                             ('PerBest', SelectPercentile(percentile=10)), \
-                            ('rf', RandomForestClassifier(n_estimators=10, min_samples_split=30, n_jobs=njobs))])
-
+                            ('rf', RandomForestClassifier(n_estimators=10000, min_samples_split=30, n_jobs=njobs))])
 tmp = AcrossSubjectCV(estimator_full, matrix_full, Y_main)
 logger.info("Global results for best graph feature estimator from accross subject CV are: \n"+tmp[0].to_string())
 logger.info("Results per subject for best graph feature estimator from accross subject CV are: \n"+tmp[1].to_string())
