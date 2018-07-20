@@ -51,15 +51,18 @@ def AcrossSubjectCV(estimator, X, Y):
     """ Implements custom CV to calculate the across subject accuracy.
     10-fold CV since we have 10 subjects.
     """
+    p = pd.read_pickle(cwd+'/subj_list')
     roc_auc=[]
     accuracyCV = []
     for s in subject_list:
-        idx, subj_idx = index_subj(s)
+        idx, subj_idx = p.loc[p['subj']==s, 'idx'].values[0], p.loc[p['subj']==s, 'subj_idx'].values[0]
         print("Preparing fold only {}".format(s))
         X_test, Y_test = [X[i] for i in subj_idx], [Y[i] for i in subj_idx]
         print("Preparing fold except {}".format(s))
         X_train, Y_train = [X[i] for i in idx], [Y[i] for i in idx]
         n = len(X_train)
+        print(n)
+        print(len(X_test))
         assert(len(X_train)+len(X_test)==10081)
         # perform upsampling only on training fold
         neg_ix = np.where([Y_train[i]==0 for i in range(n)])[0]
