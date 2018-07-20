@@ -4,3 +4,4 @@ logs_extended/
 logs/
 .DS_Store
 __pycache__
+subj_list
