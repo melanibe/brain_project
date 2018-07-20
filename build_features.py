@@ -3,6 +3,7 @@ import os
 import re
 import numpy as np
 import time
+import pandas as pd
 
 """ File builds the feature matrices.
 """
@@ -16,7 +17,7 @@ except: # for cluster
     data_folder = "/cluster/scratch/melanibe/"+'/DATA/'
 
 phases = {"REM_phasic":1,"REM_tonic":2,"S2_Kcomplex":3,"S2_plain":4,"S2_spindle":5,"SWS_deep":6}
-
+subject_list = ['S01', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S10', 'S11', 'S12']
 ################## LOADING DATA AND PREPARING THE MATRIX ##################
 def prepare_X(): 
     """ loads all the original matlab coherence matrices in one big matrix of shape [10081, 4095, 50].
@@ -72,6 +73,21 @@ def index_subj(s):
     print(np.shape(subj_idx))
     return(idx, subj_idx)
 
+def save_subj_list():
+    res = pd.DataFrame()
+    idx = []
+    subj_idx = []
+    for s in subject_list:
+        tmp = index_subj(s)
+        idx.append(tmp[0])
+        subj_idx.append(tmp[1])
+    res['subj_idx'] = subj_idx
+    res['idx'] = idx
+    res['subj'] = subject_list
+    res.to_pickle(cwd+'/subj_list')
+
+
+    
 def prepare_X_bands():
     """ saves all the subset of the original matrix per standard frequency band.
     """
@@ -211,4 +227,11 @@ if __name__=='__main__':
     #y = np.load(cwd+'/Y.npy')
     #c, _ = augment(X,y)
     #print(np.shape(c))
-    index_subj('S01')
+    #index_subj('S01')
+    save_subj_list()
+    p = pd.read_pickle(cwd+'/subj_list')
+    print(p.columns)
+    l = p.loc[p['subj']=='S01', 'idx'].values[0]
+    print(l[0])
+    l = p.loc[p['subj']=='S01', 'subj_idx'].values[0]
+    print(l[0])
