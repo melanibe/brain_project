@@ -47,64 +47,30 @@ def prepare_X():
     print(t2-t1)
     return(X,Y)
 
-def prepare_X_without_subj(s): 
-    """ loads all the original matlab coherence matrices in one big 
-    matrix of shape [10081, 4095, 50] but EXCLUDING SUBJECT s.
+def index_subj(s): 
+    """ loads all the original matlab coherence matrices in one big matrix of shape [10081, 4095, 50].
     """
-    X = []
-    Y = []
+    idx = []
+    subj_idx = []
     i=0
-    t1 = time.time()
     for subj in os.listdir(data_folder):
-        if not subj == s:
-            print(subj)
-            path_subj = os.path.join(data_folder, subj)
-            if os.path.isdir(path_subj):
-                for phase in os.listdir(path_subj):
-                    path_phase = os.path.join(path_subj, phase)
-                    if os.path.isdir(path_phase):
-                        for file in os.listdir(path_phase):
-                            path_file = os.path.join(path_phase, file)
-                            test = re.search( r'average', file)
-                            if test == None:
-                                X.append(np.reshape(np.asarray(sio.loadmat(path_file)['TF']),(4095,50)))
-                                Y.append(phases[phase])
+        print(subj)
+        path_subj = os.path.join(data_folder, subj)
+        if os.path.isdir(path_subj):
+            for phase in os.listdir(path_subj):
+                path_phase = os.path.join(path_subj, phase)
+                if os.path.isdir(path_phase):
+                    for file in os.listdir(path_phase):
+                        test = re.search( r'average', file)
+                        if test == None:
+                            if not subj == s:
+                                idx.append(i)
+                            else:
+                                subj_idx.append(i)
                             i+=1
-    t2 = time.time()
-    X = np.asarray(X)
-    Y = np.asarray(Y)
-    print(np.shape(X))
-    print(np.shape(Y))
-    print(t2-t1)
-    return(X,Y)
-
-def prepare_X_just_subj(s): 
-    """ loads all the original matlab coherence matrices in one big 
-    matrix of shape [10081, 4095, 50] but EXCLUDING SUBJECT s.
-    """
-    X = []
-    Y = []
-    i=0
-    t1 = time.time()
-    path_subj = os.path.join(data_folder, s)
-    if os.path.isdir(path_subj):
-        for phase in os.listdir(path_subj):
-            path_phase = os.path.join(path_subj, phase)
-            if os.path.isdir(path_phase):
-                for file in os.listdir(path_phase):
-                    path_file = os.path.join(path_phase, file)
-                    test = re.search( r'average', file)
-                    if test == None:
-                        X.append(np.reshape(np.asarray(sio.loadmat(path_file)['TF']),(4095,50)))
-                        Y.append(phases[phase])
-                    i+=1
-    t2 = time.time()
-    X = np.asarray(X)
-    Y = np.asarray(Y)
-    print(np.shape(X))
-    print(np.shape(Y))
-    print(t2-t1)
-    return(X,Y)
+    print(np.shape(idx))
+    print(np.shape(subj_idx))
+    return(idx, subj_idx)
 
 def prepare_X_bands():
     """ saves all the subset of the original matrix per standard frequency band.
@@ -241,7 +207,8 @@ def augment(X, Y, save=False, name=None):
 if __name__=='__main__':
     #prepare_X_std_freq()
     #prepare_X_one_freq()
-    X = np.load(cwd+'/X_delta.npy')
-    y = np.load(cwd+'/Y.npy')
-    c, _ = augment(X,y)
-    print(np.shape(c))
+    #X = np.load(cwd+'/X_delta.npy')
+    #y = np.load(cwd+'/Y.npy')
+    #c, _ = augment(X,y)
+    #print(np.shape(c))
+    index_subj('S01')
