@@ -73,8 +73,8 @@ def prepare_graph_features(name='one', p_threshold=0.05):
 
 
 if __name__=="__main__":
-    prepare_graph_features()
-    prepare_graph_features('std')
+    #prepare_graph_features()
+    #prepare_graph_features('std')
     prepare_graph_features('one', 0.01)
     prepare_graph_features('std', 0.01)
     """
