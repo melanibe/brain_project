@@ -108,6 +108,7 @@ for epoch in range(n_epochs):  # loop over the dataset multiple times
             loss = criterion(outputs, labels)
             losses += [str(loss.item())]
             loss.backward()
+            torch.nn.utils.clip_grad_norm_(gcn.parameters(), 5)
             optimizer.step()
             # print statistics
             if i % 19 == 0:    # print every 100 mini-batches
