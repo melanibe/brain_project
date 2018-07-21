@@ -28,7 +28,7 @@ class GraphConvNet(nn.Module):
         self.sum_pool = torch.tensor(self.sum_pool, dtype=torch.float32)
         self.sum_pool = Variable(self.sum_pool, requires_grad=False) # non trainable
         if torch.cuda.is_available():
-            self.sum_pool.cuda()
+            self.sum_pool = self.sum_pool.to(torch.device("cuda:0"))
 
     def forward(self, coh_array):
         coh_array = coh_array.float()
@@ -37,8 +37,8 @@ class GraphConvNet(nn.Module):
         A_hat = torch.tensor(A_hat, dtype=torch.float32)
         X = torch.eye(90*b)
         if torch.cuda.is_available():
-            A_hat.cuda()
-            X.cuda()
+            A_hat = A_hat.to(torch.device("cuda:0"))
+            X = X.to(torch.device("cuda:0"))
         A_hat = Variable(A_hat, requires_grad=False) # non trainable
         X = Variable(X, requires_grad=False) # inital node features matrix 90*b
         # GCN(A_hat,  X)
