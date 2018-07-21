@@ -5,3 +5,4 @@ logs/
 .DS_Store
 __pycache__
 subj_list
+nn/runs
