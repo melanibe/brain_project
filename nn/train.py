@@ -21,7 +21,7 @@ print(device)
 batch_size = 32
 parser = argparse.ArgumentParser()
 parser.add_argument("-b", "--batch", help="batch_size", type=int)
-parser.add_argument("-e", "--epochs", help="number of epochs")
+parser.add_argument("-e", "--epochs", help="number of epochs", type=int)
 args = parser.parse_args()
 
 if args.batch:
