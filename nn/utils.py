@@ -4,7 +4,7 @@ from sklearn.metrics import roc_auc_score
 import numpy as np
 
 
-def build_onegraph_A(one_coh_arr):
+def build_onegraph_A(one_coh_arr, pen = 1):
     """ builds the A hat matrix of the paper for one
     sample.
     """
@@ -13,17 +13,28 @@ def build_onegraph_A(one_coh_arr):
     A_tilde[index]=one_coh_arr
     A_tilde = (A_tilde + A_tilde.T)
     di = np.diag_indices(90)
-    A_tilde[di] = 1
+    A_tilde[di] = pen
     D_tilde_inv = np.diag(1/np.sqrt(np.sum(A_tilde, axis=0)))
     D_tilde = np.diag(np.sqrt(np.sum(A_tilde, axis=0)))
     A_hat = np.matmul(D_tilde_inv, np.matmul(A_tilde, D_tilde))
     return(A_hat)
 
-def build_A_hat(X_array):
+def compute_degree(one_coh_arr):
+    """ builds the A hat matrix of the paper for one
+    sample.
+    """
+    A_tilde = np.zeros((90,90))
+    index = np.tril_indices(90)
+    A_tilde[index]=one_coh_arr
+    A_tilde = (A_tilde + A_tilde.T)
+    deg = np.sum(A_tilde, axis=0)
+    return(deg)
+
+def build_A_hat(X_array, pen = 1):
     """ builds the block diagonal A hat matrix
     """
     batch_size, _ = np.shape(X_array)
-    list_blocks =[build_onegraph_A(X_array[i]) for i in range(batch_size)]
+    list_blocks =[build_onegraph_A(X_array[i], pen) for i in range(batch_size)]
     A_hat = block_diag(*list_blocks)
     return(A_hat)
 

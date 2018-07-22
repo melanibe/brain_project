@@ -3,7 +3,7 @@ import numpy as np
 import os 
 from sklearn import linear_model
 
-run_name = '21Jul18_151753_losses'
+run_name = '21Jul18_194559_losses'
 
 cwd = os.getcwd()
 try: # for local run

@@ -17,11 +17,15 @@ from utils import my_eval
 # ----------- To allow run on GPU ------------ #
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
+
 # ------------ Global parameters ------------- #
-batch_size = 32
+
 parser = argparse.ArgumentParser()
 parser.add_argument("-b", "--batch", help="batch_size", type=int)
 parser.add_argument("-e", "--epochs", help="number of epochs", type=int)
+parser.add_argument("-h1", "--h1", help="size hidden 1", type=int)
+parser.add_argument("-h2", "--h2", help="size hidden 2", type=int)
+parser.add_argument("-lr", "--learning", help="learning rate", type=float)
 args = parser.parse_args()
 
 if args.batch:
@@ -33,6 +37,21 @@ if args.epochs:
     n_epochs = args.epochs
 else:
     n_epochs = 200
+
+if args.h1:
+    h1 = args.h1
+else:
+    h1 = 32
+
+if args.h2:
+    h2 = args.h2
+else:
+    h2 = 128
+
+if args.learning:
+    lr = args.learning
+else:
+    lr = 0.01
 
 # ----------- Logger and directory set up ------ #
 cwd = os.getcwd()
@@ -67,8 +86,12 @@ logger.addHandler(file_handler)
 
 logger.info("BATCH SIZE: {}".format(batch_size))
 logger.info("NUMBER OF EPOCHS: {}".format(n_epochs))
+logger.info("H1: {}".format(h1))
+logger.info("H2: {}".format(h2))
+logger.info("learning rate: {}".format(lr))
+
 # ------------------------ Load data --------------------- #
-X = np.load(cwd+'/./one.npy')
+X = np.load(cwd+'/one.npy')
 Y = np.load(cwd+'/./y.npy')
 Y_main = [1 if ((y==1) or (y==2)) else 0 for y in Y]
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y_main, test_size=0.3, random_state=42, stratify=Y_main)
@@ -78,24 +101,26 @@ X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, test_size=0.
 weight = (3/2)*np.ones(len(X_train))
 weight[Y_main==1] = 3
 sampler = torch.utils.data.sampler.WeightedRandomSampler(weight, len(weight))
-# further splitting intial train into train and val (don't use test for val)
 X_trainloader = torch.utils.data.DataLoader(X_train, batch_size=batch_size, sampler = sampler, num_workers=4)
 Y_trainloader = torch.utils.data.DataLoader(Y_train, batch_size=batch_size, sampler = sampler, num_workers=4)
 X_valloader = torch.utils.data.DataLoader(X_val, batch_size=batch_size, shuffle=False, num_workers=4)
 Y_valloader = torch.utils.data.DataLoader(Y_val, batch_size=batch_size, shuffle=False, num_workers=4)
 
+
+
 # --------------------- Training ----------------------- #
 
 # Initialize the network
-gcn = GraphConvNet(batch_size).to(device)
+gcn = GraphConvNet(h1, h2).to(device)
 
 # Define loss and optimizer
-w = torch.tensor([1,1], dtype=torch.float32).to(device)
-criterion = nn.CrossEntropyLoss(weight=w)
-optimizer = optim.Adam(gcn.parameters(), lr=0.000001)
+criterion = nn.CrossEntropyLoss()
+optimizer = optim.Adam(gcn.parameters(), lr=lr)
+#optimizer = optim.Adadelta(gcn.parameters())
 losses = [] 
+current_batch_loss = 0
 # Training loop
-for epoch in range(n_epochs):  # loop over the dataset multiple times
+for epoch in range(n_epochs): 
     for i, data in enumerate(zip(X_trainloader, Y_trainloader), 0):
         # get the inputs
         coh_array, labels = data
@@ -107,13 +132,18 @@ for epoch in range(n_epochs):  # loop over the dataset multiple times
             outputs = gcn(coh_array)
             loss = criterion(outputs, labels)
             losses += [str(loss.item())]
+            current_batch_loss += loss.item()
             loss.backward()
             torch.nn.utils.clip_grad_norm_(gcn.parameters(), 5)
             optimizer.step()
-            # print statistics
-            if i % 19 == 0:    # print every 100 mini-batches
-                logger.info('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, loss))
-    my_eval(gcn, epoch, i, X_valloader, Y_valloader, batch_size, device, criterion, logger)
-    torch.save(gcn, checkpoint_dir + t +'.pt')
-    with open(checkpoint_dir + t + '_losses.csv', 'w') as outfile:
-        outfile.write("\n".join(losses))
+            #print statistics
+            #if i % 19 == 0:    # print every 100 mini-batches
+            #    logger.info('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, loss))
+    logger.info("current epoch sum loss %.3f" % (current_batch_loss))
+    current_batch_loss = 0
+    if epoch%10 == 0:
+        my_eval(gcn, epoch, i, X_valloader, Y_valloader, batch_size, device, criterion, logger)
+        torch.save(gcn, checkpoint_dir + t +'.pt')
+    # save the losses for plotting and monitor training
+    #with open(checkpoint_dir + t + '_losses.csv', 'w') as outfile:
+    #    outfile.write("\n".join(losses))

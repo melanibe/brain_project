@@ -4,51 +4,52 @@ import torch.nn as nn
 import torch.nn.functional as F
 import numpy as np 
 from utils import build_A_hat
+from scipy.linalg import block_diag
 
-""" what can still be improved
-use attention layer (other pooling method) instead of sum the node rep
-do some hyperparameter tuning for the layers, paper suggests that is it not necessary to go 
-very deep.
-"""
+
 class GraphConvNet(nn.Module):
-    """builds the graph conv net for graph classification. 
+    """ builds the graph conv net for graph classification. 
     Following what is explained in https://github.com/tkipf/gcn/issues/4
     """
-    def __init__(self, batch_size): # see how nn parameter functions
+    def __init__(self, h1, h2, f1=128):
         super(GraphConvNet, self).__init__()
-        #self.device = torch.device(device_name)
-        self.batch_size = batch_size
-        self.conv1 = nn.Linear(self.batch_size*90, 32) # input -> hidden 1
-        self.dropout1 = nn.Dropout(p=0.5)
-        self.conv2 = nn.Linear(32, 8) # hidden1 -> hidden 2
-        self.out = nn.Linear(8, 2) # graph rep -> output logits
-        self.sum_pool = np.zeros((self.batch_size,self.batch_size*90))
-        for i in range(self.batch_size):
-            self.sum_pool[i*self.batch_size:(i+1)*self.batch_size]=1
-        self.sum_pool = torch.tensor(self.sum_pool, dtype=torch.float32)
-        self.sum_pool = Variable(self.sum_pool, requires_grad=False) # non trainable
-        if torch.cuda.is_available():
-            self.sum_pool = self.sum_pool.to(torch.device("cuda:0"))
+        self.h1 = h1
+        self.h2 = h2
+        self.conv1 = nn.Linear(90, h1, bias=False) # input -> hidden 1
+        #self.dropout1 = nn.Dropout(p=0.01) not used b/c does not even converge so no regularization
+        self.conv2 = nn.Linear(h1, h2, bias=False) # hidden1 -> hidden 2
+        self.out1 = nn.Linear(h2, f1) # graph rep -> output logits
+        self.out2 = nn.Linear(f1, 2) # graph rep -> output logits
 
     def forward(self, coh_array):
+        # original array of pairs
         coh_array = coh_array.float()
+        # get batch size
         b, _ = np.shape(coh_array)
+        # build A_hat as in the paper
         A_hat = build_A_hat(coh_array)
-        A_hat = torch.tensor(A_hat, dtype=torch.float32)
-        X = torch.eye(90*b)
+        # to tensor
+        A_hat = torch.tensor(A_hat, dtype=torch.float32, requires_grad=False) # non trainable
+        # we don't have feature so use identity for each graph
+        id90 = torch.eye(90, requires_grad=False)
+        # concatenate the feature matrix for batch of graphs
+        X = torch.cat([id90 for i in range(b)], dim = 0) 
+        # build the outpooling matrix (could be done outside in train.py)     
+        sum_pool = torch.zeros((b,90*b), requires_grad=False)
+        for i in range(b):
+            sum_pool[i, (i*90):((i+1)*90)]=1
+        # send the tensors to GPU if necessary
         if torch.cuda.is_available():
+            sum_pool = sum_pool.to(torch.device("cuda:0"))
             A_hat = A_hat.to(torch.device("cuda:0"))
             X = X.to(torch.device("cuda:0"))
-        A_hat = Variable(A_hat, requires_grad=False) # non trainable
-        X = Variable(X, requires_grad=False) # inital node features matrix 90*b
-        # GCN(A_hat,  X)
-        x = A_hat.mm(X)
-        x = self.conv1(x)
-        x = F.relu(x) # input -> hidden 1
-        x = self.dropout1(x) # drop out
-        x = A_hat.mm(x)
-        x = F.relu(self.conv2(x)) # hidden 1 -> node representation (hidden 2) output size is [2880, 8]
-        # Pooling layer node rep -> graph rep
-        x = self.sum_pool.mm(x) # retrieves the graph embedding of dimension 8
-        logits = self.out(x) # dense layer
+        # Graph Conv 
+        x = F.relu(self.conv1(A_hat.mm(X))) # input -> hidden 1
+        x = F.relu(self.conv2(A_hat.mm(x))) # hidden 1 -> node 
+        # pool the node representation from GCN to get graph representation
+        x = sum_pool.mm(x)
+        # fully connected layer for graph classification
+        fc1 = F.relu(self.out1(x))
+        # output layer (logits)
+        logits = self.out2(fc1)
         return logits
