@@ -4,7 +4,7 @@ from sklearn.metrics import roc_auc_score
 import numpy as np
 
 
-def build_onegraph_A(one_coh_arr):
+def build_onegraph_A(one_coh_arr, super=False):
     """ builds the A hat matrix of the paper for one
     sample.
     """
@@ -14,6 +14,9 @@ def build_onegraph_A(one_coh_arr):
     A_tilde = (A_tilde + A_tilde.T)
     di = np.diag_indices(90)
     A_tilde[di] = 1
+    if super:
+        A_tilde = np.concatenate((A_tilde, np.ones((90, 1))), axis = 1)
+        A_tilde = np.concatenate((A_tilde, np.ones((1, 91))), axis = 0)
     D_tilde_inv = np.diag(1/np.sqrt(np.sum(A_tilde, axis=0)))
     A_hat = np.matmul(D_tilde_inv, np.matmul(A_tilde, D_tilde_inv))
     return(A_hat)
@@ -29,11 +32,11 @@ def compute_degree(one_coh_arr):
     deg = np.sum(A_tilde, axis=0)
     return(deg)
 
-def build_A_hat(X_array):
+def build_A_hat(X_array, super = False):
     """ builds the block diagonal A hat matrix
     """
     batch_size, _ = np.shape(X_array)
-    list_blocks =[build_onegraph_A(X_array[i]) for i in range(batch_size)]
+    list_blocks =[build_onegraph_A(X_array[i], super=super) for i in range(batch_size)]
     A_hat = block_diag(*list_blocks)
     return(A_hat)
 
