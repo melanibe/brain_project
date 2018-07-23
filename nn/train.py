@@ -12,8 +12,8 @@ from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 
 from model import GraphConvNet
-from utils import my_eval
-
+from utils import my_eval, build_onegraph_A
+from scipy.linalg import block_diag
 # ----------- To allow run on GPU ------------ #
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
 print(device)
@@ -51,7 +51,7 @@ else:
 if args.learning:
     lr = args.learning
 else:
-    lr = 0.01
+    lr = 0.001
 
 # ----------- Logger and directory set up ------ #
 cwd = os.getcwd()
@@ -86,8 +86,8 @@ logger.addHandler(file_handler)
 
 logger.info("BATCH SIZE: {}".format(batch_size))
 logger.info("NUMBER OF EPOCHS: {}".format(n_epochs))
-logger.info("H1: {}".format(h1))
-logger.info("H2: {}".format(h2))
+#logger.info("H1: {}".format(h1))
+#logger.info("H2: {}".format(h2))
 logger.info("learning rate: {}".format(lr))
 
 # ------------------------ Load data --------------------- #
@@ -96,7 +96,7 @@ Y = np.load(cwd+'/./y.npy')
 Y_main = [1 if ((y==1) or (y==2)) else 0 for y in Y]
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y_main, test_size=0.3, random_state=42, stratify=Y_main)
 X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, test_size=0.1, random_state=42, stratify=Y_train)
-
+n_obs, _ = np.shape(X_train)
 # Creating the batches (balanced classes)
 weight = (3/2)*np.ones(len(X_train))
 weight[Y_main==1] = 3
@@ -111,11 +111,11 @@ Y_valloader = torch.utils.data.DataLoader(Y_val, batch_size=batch_size, shuffle=
 # --------------------- Training ----------------------- #
 
 # Initialize the network
-gcn = GraphConvNet(h1, h2).to(device)
+gcn = GraphConvNet().to(device)
 
 # Define loss and optimizer
 criterion = nn.CrossEntropyLoss()
-optimizer = optim.Adam(gcn.parameters(), lr=lr)
+optimizer = optim.Adam(gcn.parameters(), lr=lr, weight_decay=5e-4)
 #optimizer = optim.Adadelta(gcn.parameters())
 losses = [] 
 current_batch_loss = 0
@@ -125,25 +125,30 @@ for epoch in range(n_epochs):
         # get the inputs
         coh_array, labels = data
         coh_array, labels = coh_array.to(device), labels.to(device)
-        if len(labels)==batch_size:
-            # zero the parameter gradients
-            optimizer.zero_grad() 
-            # forward + backward + optimize
-            outputs = gcn(coh_array)
-            loss = criterion(outputs, labels)
-            losses += [str(loss.item())]
-            current_batch_loss += loss.item()
-            loss.backward()
-            torch.nn.utils.clip_grad_norm_(gcn.parameters(), 5)
-            optimizer.step()
-            #print statistics
-            #if i % 19 == 0:    # print every 100 mini-batches
-            #    logger.info('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, loss))
-    logger.info("current epoch sum loss %.3f" % (current_batch_loss))
+        n, _ = coh_array.size()
+        A = torch.zeros((n, 90, 90)).to(device)
+        X = torch.zeros((n, 90, 90)).to(device)
+        for i in range(n):
+            A[i] = torch.tensor(build_onegraph_A(coh_array[i]))
+            # we don't have feature so use identity for each graph
+            X[i] = torch.eye(90)
+        # zero the parameter gradients
+        optimizer.zero_grad()
+        # forward + backward + optimize
+        outputs = gcn(A, X)
+        loss = criterion(outputs, labels)
+        loss.backward()
+        optimizer.step()
+        losses += [str(loss.item())]
+        current_batch_loss += loss.item()
+        #print statistics
+        if i % 19 == 0:    # print every 100 mini-batches
+            logger.info('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, loss))
+    logger.info("Mean of the loss for epoch %d is %.3f" % (epoch + 1, current_batch_loss/(i+1)))
     current_batch_loss = 0
     if epoch%10 == 0:
         my_eval(gcn, epoch, i, X_valloader, Y_valloader, batch_size, device, criterion, logger)
-        torch.save(gcn, checkpoint_dir + t +'.pt')
+    #    torch.save(gcn, checkpoint_dir + t +'.pt')
     # save the losses for plotting and monitor training
     #with open(checkpoint_dir + t + '_losses.csv', 'w') as outfile:
     #    outfile.write("\n".join(losses))
