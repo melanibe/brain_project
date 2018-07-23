@@ -44,7 +44,7 @@ class GraphConvNetwork(nn.Module):
         #print(x)
         x = F.relu(self.gc2(x, adj)) # -> [batch, 90, h2]
         x = self.gc3(x, adj) # -> [batch, 90, 128] node representation 
-        #print(x)
+        #print(x) # THIS IS LEARNING TO GO TO ZERO ?????
         #print(x.size())
         
         # Adding GAP layer
