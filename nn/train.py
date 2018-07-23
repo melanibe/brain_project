@@ -12,7 +12,7 @@ import torch.optim as optim
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import roc_auc_score
 
-from model2 import GraphConvNetwork
+from model import GraphConvNetwork
 from utils import my_eval, build_onegraph_A
 from scipy.linalg import block_diag
 # ----------- To allow run on GPU ------------ #
