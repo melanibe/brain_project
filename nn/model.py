@@ -39,20 +39,19 @@ class GraphConvNetwork(nn.Module):
         self.out = nn.Linear(out_feats, 2)
     
     def forward(self, feats, adj):
-        '''
-        feats(torch.tensor): the graph node features(matrix of Nxd), N = num nodes, d = num features
-        adj(torch.tensor): adjacency matrix of the graph
-        '''
-        #print(adj)
-        x = self.gc1(feats, adj)
+        # GCN learns node representation
+        x = F.relu(self.gc1(feats, adj)) # -> [batch, 90, h1]
         #print(x)
-        x = self.gc2(x, adj)
-        x = self.gc3(x, adj)
+        x = F.relu(self.gc2(x, adj)) # -> [batch, 90, h2]
+        x = self.gc3(x, adj) # -> [batch, 90, 128] node representation 
         #print(x)
         #print(x.size())
-        x = torch.sum(x,1)
+        
+        # Adding GAP layer
+        x = torch.sum(x,1) # -> [batch, 128] graph representation summing all nodes
         #print(x.size())
-       # print(x)
-        # output layer (logits)
-        x = self.out(x)
+        #print(x)
+
+        # GAP to output layer (logits)
+        x = self.out(x) # -> [batch, 2] class of the graph
         return(x)
