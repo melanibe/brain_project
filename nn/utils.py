@@ -17,6 +17,8 @@ def build_onegraph_A(one_coh_arr, super=False):
         A = np.concatenate((A, np.ones((90, 1))), axis = 1) # adding the super node
         A = np.concatenate((A, np.ones((1, 91))), axis = 0)
     # A tilde from the paper
+    di = np.diag_indices(90)
+    A[di] = A[di]/2
     A_tilde = A + np.eye(90)
     # D tilde power -0.5
     D_tilde_inv = np.diag(np.power(np.sum(A_tilde, axis=0), -0.5))
