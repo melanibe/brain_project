@@ -17,7 +17,7 @@ class GraphConvNet(nn.Module):
         self.conv3 = nn.Linear(h2, h3, bias=False) 
         self.conv4 = nn.Linear(h3, h4, bias=False) 
         self.conv5 = nn.Linear(h4, h5, bias=False) 
-        self.dropout = nn.Dropout(p=0.5) #not used b/c does not even converge so no regularization
+        self.dropout = nn.Dropout(p=0.5, ) #not used b/c does not even converge so no regularization
         self.out = nn.Linear(h5, 2) # graph rep -> output logits
 
     def forward(self, A_hat, X):
@@ -26,15 +26,13 @@ class GraphConvNet(nn.Module):
         # Graph Conv 
         x = F.relu(self.conv1(A_hat.bmm(X))) # input -> hidden 1
         x = F.relu(self.conv2(A_hat.bmm(x))) # hidden 1 -> node 
-        x = self.dropout(x)
+        x = F.dropout(x, 0.5, training=self.training)
         x = F.relu(self.conv3(A_hat.bmm(x)))
         x = F.relu(self.conv4(A_hat.bmm(x)))
-        x = self.dropout(x)
+        x = F.dropout(x, 0.5, training=self.training)
         x = F.relu(self.conv5(A_hat.bmm(x))) 
-        x = self.dropout(x)
-        x = F.avg_pool1d(torch.transpose(x, 1,2), kernel_size = 90)
-        x = x.view(-1, self.h5)
-        #print(x.size())
+        x = F.dropout(x, 0.5, training=self.training)
+        x = torch.sum(x, 1)
         # output layer (logits)
-        logits = self.out(x)
-        return logits
+        x = self.out(x)
+        return F.log_softmax(x)

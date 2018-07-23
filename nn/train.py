@@ -5,6 +5,7 @@ import torch
 import numpy as np
 import argparse
 
+
 from torch.utils.data import DataLoader
 import torch.nn as nn
 import torch.optim as optim
@@ -93,14 +94,17 @@ logger.info("learning rate: {}".format(lr))
 # ------------------------ Load data --------------------- #
 X = np.load(cwd+'/one.npy')
 Y = np.load(cwd+'/./y.npy')
+#from sklearn.preprocessing import normalize
+#X = normalize(X) does not change anything
 Y_main = [1 if ((y==1) or (y==2)) else 0 for y in Y]
 X_train, X_test, Y_train, Y_test = train_test_split(X, Y_main, test_size=0.3, random_state=42, stratify=Y_main)
 X_train, X_val, Y_train, Y_val = train_test_split(X_train, Y_train, test_size=0.1, random_state=42, stratify=Y_train)
 n_obs, _ = np.shape(X_train)
+
 # Creating the batches (balanced classes)
 weight = (3/2)*np.ones(len(X_train))
-weight[Y_main==1] = 3
-sampler = torch.utils.data.sampler.WeightedRandomSampler(weight, len(weight))
+weight[[y==1 for y in Y_train]] = 3
+sampler = torch.utils.data.sampler.WeightedRandomSampler(weight, batch_size)
 X_trainloader = torch.utils.data.DataLoader(X_train, batch_size=batch_size, sampler = sampler, num_workers=4)
 Y_trainloader = torch.utils.data.DataLoader(Y_train, batch_size=batch_size, sampler = sampler, num_workers=4)
 X_valloader = torch.utils.data.DataLoader(X_val, batch_size=batch_size, shuffle=False, num_workers=4)
@@ -109,16 +113,17 @@ Y_valloader = torch.utils.data.DataLoader(Y_val, batch_size=batch_size, shuffle=
 
 
 # --------------------- Training ----------------------- #
-
 # Initialize the network
 gcn = GraphConvNet().to(device)
-
+print(gcn.state_dict().keys())
 # Define loss and optimizer
-criterion = nn.CrossEntropyLoss()
+criterion = nn.NLLLoss()
 optimizer = optim.Adam(gcn.parameters(), lr=lr, weight_decay=5e-4)
 #optimizer = optim.Adadelta(gcn.parameters())
 losses = [] 
 current_batch_loss = 0
+pos = 0
+neg = 0
 # Training loop
 for epoch in range(n_epochs): 
     for iter, data in enumerate(zip(X_trainloader, Y_trainloader), 0):
@@ -141,6 +146,10 @@ for epoch in range(n_epochs):
         optimizer.step()
         losses += [str(loss.item())]
         current_batch_loss += loss.item()
+        #to see the gradients
+        #params = list(gcn.parameters())
+        #for p in params:
+        #    print(p.grad)
         #print statistics
         #if iter % 19 == 0:    # print every 100 mini-batches
         #    logger.info('[%d, %5d] loss: %.3f' % (epoch + 1, iter + 1, loss))
@@ -148,7 +157,6 @@ for epoch in range(n_epochs):
     current_batch_loss = 0
     if epoch%10 == 0:
         my_eval(gcn, epoch, i, X_valloader, Y_valloader, batch_size, device, criterion, logger)
-    #    torch.save(gcn, checkpoint_dir + t +'.pt')
+    #   torch.save(gcn, checkpoint_dir + t +'.pt')
     # save the losses for plotting and monitor training
     #with open(checkpoint_dir + t + '_losses.csv', 'w') as outfile:
-    #    outfile.write("\n".join(losses))
