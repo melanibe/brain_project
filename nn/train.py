@@ -121,7 +121,7 @@ losses = []
 current_batch_loss = 0
 # Training loop
 for epoch in range(n_epochs): 
-    for i, data in enumerate(zip(X_trainloader, Y_trainloader), 0):
+    for iter, data in enumerate(zip(X_trainloader, Y_trainloader), 0):
         # get the inputs
         coh_array, labels = data
         coh_array, labels = coh_array.to(device), labels.to(device)
@@ -142,9 +142,9 @@ for epoch in range(n_epochs):
         losses += [str(loss.item())]
         current_batch_loss += loss.item()
         #print statistics
-        if i % 19 == 0:    # print every 100 mini-batches
-            logger.info('[%d, %5d] loss: %.3f' % (epoch + 1, i + 1, loss))
-    logger.info("Mean of the loss for epoch %d is %.3f" % (epoch + 1, current_batch_loss/(i+1)))
+        #if iter % 19 == 0:    # print every 100 mini-batches
+        #    logger.info('[%d, %5d] loss: %.3f' % (epoch + 1, iter + 1, loss))
+    logger.info("Mean of the loss for epoch %d is %.3f" % (epoch + 1, current_batch_loss/(iter+1)))
     current_batch_loss = 0
     if epoch%10 == 0:
         my_eval(gcn, epoch, i, X_valloader, Y_valloader, batch_size, device, criterion, logger)
