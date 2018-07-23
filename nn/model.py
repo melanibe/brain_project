@@ -1,38 +1,58 @@
-import torch
-import torch.nn as nn
 import torch.nn.functional as F
-import numpy as np
+import torch.nn as nn
+from torch.autograd import  Variable
+from torch.nn.parameter import Parameter
+from torch.nn.modules.module import Module
+import torch
+import numpy as np 
 
+import math
 
-class GraphConvNet(nn.Module):
-    """ builds the graph conv net for graph classification. 
-    Following what is explained in https://github.com/tkipf/gcn/issues/4
-    and using the architecture from graph saliency for sex classification.
-    """
-    def __init__(self, h1=32, h2=32, h3=64, h4=64, h5=128):
-        super(GraphConvNet, self).__init__()
-        self.h5 = h5
-        self.conv1 = nn.Linear(90, h1, bias=False) # input -> hidden 1
-        self.conv2 = nn.Linear(h1, h2, bias=False) 
-        self.conv3 = nn.Linear(h2, h3, bias=False) 
-        self.conv4 = nn.Linear(h3, h4, bias=False) 
-        self.conv5 = nn.Linear(h4, h5, bias=False) 
-        self.dropout = nn.Dropout(p=0.5) #not used b/c does not even converge so no regularization
-        self.out = nn.Linear(h5, 2) # graph rep -> output logits
+class GraphConvLayer(Module):
+    def __init__(self, in_features, out_features, bias=True):
+        super(GraphConvLayer, self).__init__()
+        self.in_features = in_features
+        self.out_features = out_features
+        self.weight = Parameter(torch.FloatTensor(in_features, out_features))
+        self.reset_parameters()
+    
+    def reset_parameters(self):
+        stdv = 1. / math.sqrt(self.weight.size(1))
+        self.weight.data.uniform_(-stdv, stdv)
 
-    def forward(self, A_hat, X):
-        # get batch size
-        b, _, _ = np.shape(A_hat)
-        # Graph Conv 
-        x = F.relu(self.conv1(A_hat.bmm(X))) # input -> hidden 1
-        x = F.relu(self.conv2(A_hat.bmm(x))) # hidden 1 -> node 
-        x = self.dropout(x)
-        x = F.relu(self.conv3(A_hat.bmm(x)))
-        x = F.relu(self.conv4(A_hat.bmm(x)))
-        x = self.dropout(x)
-        x = F.relu(self.conv5(A_hat.bmm(x))) 
-        x = self.dropout(x)
-        x = torch.sum(x, 1)
+    def forward(self, input, adj):
+        '''
+        input(torch.Tensor):
+        adj(torch.Tensor): adjacency matrix
+        '''
+        b, _, _ = np.shape(input)
+        hidden = torch.bmm(input, self.weight.expand(b, self.in_features, self.out_features))
+        output = torch.bmm(adj, hidden)
+        return output
+
+class GraphConvNetwork(nn.Module):
+    def __init__(self, in_feats=90, hidden_size=64, out_feats=128):
+        super(GraphConvNetwork, self).__init__()
+        self.gc1 = GraphConvLayer(in_feats, hidden_size)
+        self.gc2 = GraphConvLayer(hidden_size, hidden_size)
+        self.gc3 = GraphConvLayer(hidden_size, out_feats)
+        self.out = nn.Linear(out_feats, 2)
+    
+    def forward(self, feats, adj):
+        '''
+        feats(torch.tensor): the graph node features(matrix of Nxd), N = num nodes, d = num features
+        adj(torch.tensor): adjacency matrix of the graph
+        '''
+        #print(adj)
+        x = self.gc1(feats, adj)
+        #print(x)
+        x = self.gc2(x, adj)
+        x = self.gc3(x, adj)
+        #print(x)
+        #print(x.size())
+        x = torch.sum(x,1)
+        #print(x.size())
+       # print(x)
         # output layer (logits)
         x = self.out(x)
-        return F.log_softmax(x)
+        return(x)

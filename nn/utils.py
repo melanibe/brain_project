@@ -2,7 +2,7 @@ import torch
 from scipy.linalg import block_diag
 from sklearn.metrics import roc_auc_score
 import numpy as np
-
+from torch.utils.data import Dataset
 
 def build_onegraph_A(one_coh_arr, super=False):
     """ builds the A hat matrix of the paper for one
@@ -38,7 +38,7 @@ def compute_degree(one_coh_arr):
     return(deg)
 
 
-def my_eval(gcn, epoch, i, X_valloader, Y_valloader, batch_size, device, criterion, logger):
+def my_eval(gcn, epoch, i, valloader, batch_size, device, criterion, logger):
     """ used for eval on validation set during training.
     """
     #for p in zip(gcn.parameters()):
@@ -50,18 +50,17 @@ def my_eval(gcn, epoch, i, X_valloader, Y_valloader, batch_size, device, criteri
         loss_val = 0
         yvalidation = []
         c = 0
-        for xval, yval in zip(X_valloader, Y_valloader):
+        for data in valloader:
             # get the inputs
-            coh_array, labels = xval.to(device), yval.to(device)
+            coh_array, labels = data['X'], data['Y']
+            coh_array, labels = coh_array.to(device), labels.to(device)
             n, _ = coh_array.size()
             A = torch.zeros((n, 90, 90)).to(device)
-            X = torch.zeros((n, 90, 90)).to(device)
+            X = torch.eye(90).expand(n, 90, 90)
             for i in range(n):
                 A[i] = torch.tensor(build_onegraph_A(coh_array[i]))
-                # we don't have feature so use identity for each graph
-                X[i] = torch.eye(90)
             yvalidation.append(labels)
-            outputs_val = gcn(A, X)
+            outputs_val = gcn(X, A)
             proba.append(outputs_val.data.cpu().numpy())
             _, predicted = torch.max(outputs_val.data, 1)
             total += labels.size(0)
@@ -72,3 +71,4 @@ def my_eval(gcn, epoch, i, X_valloader, Y_valloader, batch_size, device, criteri
         logger.info('Accuracy of the network val set end of epoch %d : %.3f%% \n and ROC is %.3f' % (epoch + 1, \
                                                         100 * correct / total, \
                                                         roc_auc_score(np.concatenate(yvalidation), np.concatenate(proba)[:,1])))
+
