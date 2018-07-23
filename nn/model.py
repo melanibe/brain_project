@@ -17,7 +17,7 @@ class GraphConvNet(nn.Module):
         self.conv3 = nn.Linear(h2, h3, bias=False) 
         self.conv4 = nn.Linear(h3, h4, bias=False) 
         self.conv5 = nn.Linear(h4, h5, bias=False) 
-        self.dropout = nn.Dropout(p=0.5, ) #not used b/c does not even converge so no regularization
+        self.dropout = nn.Dropout(p=0.5) #not used b/c does not even converge so no regularization
         self.out = nn.Linear(h5, 2) # graph rep -> output logits
 
     def forward(self, A_hat, X):
@@ -26,12 +26,12 @@ class GraphConvNet(nn.Module):
         # Graph Conv 
         x = F.relu(self.conv1(A_hat.bmm(X))) # input -> hidden 1
         x = F.relu(self.conv2(A_hat.bmm(x))) # hidden 1 -> node 
-        x = F.dropout(x, 0.5, training=self.training)
+        x = self.dropout(x)
         x = F.relu(self.conv3(A_hat.bmm(x)))
         x = F.relu(self.conv4(A_hat.bmm(x)))
-        x = F.dropout(x, 0.5, training=self.training)
+        x = self.dropout(x)
         x = F.relu(self.conv5(A_hat.bmm(x))) 
-        x = F.dropout(x, 0.5, training=self.training)
+        x = self.dropout(x)
         x = torch.sum(x, 1)
         # output layer (logits)
         x = self.out(x)
