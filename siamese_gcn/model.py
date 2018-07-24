@@ -9,7 +9,10 @@ from torch.nn.parameter import Parameter
 from torch.nn.modules.module import Module
 
 
-""" TO DO tune layers, number hidden neurons, dropout
+""" TO DO
+- tune layers, number hidden neurons, dropout
+- write the model code better (i.e. not copy paste the GCN model but write a separate class for the 
+whole model and one for the GCN part)
 """
 
 class GraphConvLayer(Module):
