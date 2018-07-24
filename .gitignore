@@ -7,3 +7,5 @@ __pycache__
 subj_list
 nn/runs
 nn_old/
+siamese_gcn/__pycache__/
+siamese_gcn/runs/
