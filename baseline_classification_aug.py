@@ -14,27 +14,12 @@ import logging
 import time 
 import argparse
 
+from CV_utils import UpsampleStratifiedKFold
 """ Runs the gridsearches of classification report.
 """
 # corrected version of https://stackoverflow.com/questions/30040597/how-to-generate-a-custom-cross-validation-generator-in-scikit-learn
 # should put that in separated file with the other custom CV
-class UpsampleStratifiedKFold:
-    """ custom cv generator for upsampling.
-    """
-    def __init__(self, n_splits=3):
-        self.n_splits = n_splits
 
-    def split(self, X, y, groups=None):
-        skf = StratifiedKFold(n_splits=self.n_splits)
-        for train_idx, test_idx in skf.split(X,y):
-            neg_ix = np.where([y[i]==0 for i in train_idx])[0]
-            pos_ix = np.where([y[i]==1 for i in train_idx])[0]
-            aug_pos_ix = np.random.choice(pos_ix, size=len(neg_ix), replace=True)
-            train_ix = np.append(neg_ix, aug_pos_ix)
-            yield train_ix, test_idx
-
-    def get_n_splits(self, X, y, groups=None):
-        return self.n_splits
 
 ############## PARAMS SETUP ###############
 gridsearch_scores = ['roc_auc','accuracy','f1']
