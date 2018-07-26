@@ -15,9 +15,8 @@ from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import normalize
 from scipy.linalg import block_diag
 
-from model import GraphConvNetwork
+from model import GraphConvNetwork, GraphConvNetwork_paper, GCN_multiple
 from utils import my_eval, build_onegraph_A, ToTorchDataset
-
 
 # ----------- To allow run on GPU ------------ #
 device = torch.device("cuda:0" if torch.cuda.is_available() else "cpu")
@@ -32,17 +31,23 @@ parser.add_argument("-h1", "--h1", help="size hidden 1", type=int)
 parser.add_argument("-h2", "--h2", help="size hidden 2", type=int)
 parser.add_argument("-out", "--out", help="size out feat", type=int)
 parser.add_argument("-lr", "--learning", help="learning rate", type=float)
+parser.add_argument("-m", "--model", help="model")
 args = parser.parse_args()
+
+if args.model:
+    model = args.model
+else:
+    model = 'GCN'
 
 if args.batch:
     batch_size = args.batch
 else:
-    batch_size = 100
+    batch_size = 200
 
 if args.epochs:
     n_epochs = args.epochs
 else:
-    n_epochs = 25
+    n_epochs = 10
 
 if args.h1:
     h1 = args.h1
@@ -98,9 +103,10 @@ logger.addHandler(file_handler)
 logger.info("BATCH SIZE: {}".format(batch_size))
 logger.info("NUMBER OF EPOCHS: {}".format(n_epochs))
 logger.info("LEARNING RATE: {}".format(lr))
-logger.info("H1: {}".format(h1))
-logger.info("H2: {}".format(h2))
-logger.info("OUT: {}".format(out))
+if not model=='paper':
+    logger.info("H1: {}".format(h1))
+    logger.info("H2: {}".format(h2))
+    logger.info("OUT: {}".format(out))
 
 # ------------------------ Load data --------------------- #
 X = np.load(cwd+'/std.npy')
@@ -116,6 +122,7 @@ print(n_obs)
 # ---------------- creating batches -------------------- #
 train = ToTorchDataset(X_train, Y_train)
 val = ToTorchDataset(X_val, Y_val)
+
 # Creating the batches (balanced classes)
 weight = (3/2)*np.ones(len(X_train))
 weight[[y==1 for y in Y_train]] = 3
@@ -126,9 +133,19 @@ valloader = torch.utils.data.DataLoader(val, batch_size=batch_size, shuffle=Fals
 
 # --------------------- Training ----------------------- #
 # Initialize the network
-gcn = GraphConvNetwork(90, h1, h2, out).to(device)
+if model=='paper':
+    gcn = GraphConvNetwork_paper().to(device)
+    logger.info("USING PAPER MODEL")
+elif model == 'multi':
+    gcn = GCN_multiple().to(device)
+    logger.info("USING MULTIPLE MODEL")
+else:
+    logger.info("NORMAL MODEL")
+    gcn = GraphConvNetwork(90, h1, h2, out).to(device)
+
 print(gcn.state_dict().keys())
 # Define loss and optimizer
+#weight = torch.tensor([1,2], dtype=torch.float32)
 criterion = nn.CrossEntropyLoss() # applies softmax + cross entropy
 optimizer = optim.Adam(gcn.parameters(), lr=lr, weight_decay=5e-4)
 #optimizer = optim.Adadelta(gcn.parameters())
@@ -139,6 +156,7 @@ current_batch_loss = 0
 # Training loop
 for epoch in range(n_epochs): 
     for iter, data in enumerate(trainloader, 0):
+        gcn.train()
         # get the inputs
         labels = data['Y']
         coh_array1 = data['f1']
@@ -183,8 +201,9 @@ for epoch in range(n_epochs):
         #    print(p.grad)
 
         #print statistics
-        #if iter % 19 == 0:    # print every 100 mini-batches
-        #   logger.info('[%d, %5d] loss: %.3f' % (epoch + 1, iter + 1, loss))
+ #       if iter % 19 == 0:    # print every 100 mini-batches
+ #           loss_val_e, roc_e, acc_e = my_eval(gcn, epoch, i, valloader, batch_size, device, criterion, logger)
+ #           logger.info('[%d, %5d] loss: %.3f' % (epoch + 1, iter + 1, loss))
     logger.info("Mean of the loss for epoch %d is %.3f" % (epoch + 1, current_batch_loss/(iter+1)))
     current_batch_loss = 0
     loss_val_e, roc_e, acc_e = my_eval(gcn, epoch, i, valloader, batch_size, device, criterion, logger)
