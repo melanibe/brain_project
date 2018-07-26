@@ -1,5 +1,5 @@
 TO DO LIST
-
+* RERUN ALL THE EXP WITH THE UPSAMPLING WITH THE CORRECTED VERSION !!!!!!
 * Create exp folder, more generally organize the code folder in subfolder cause it is becoming a mess. And do extended code checking and tidying. Put the unsused file in deprecated folder
 * Create the experiment launcher to run all level of CV (with CV functions created in CV utils) with the classic classifiers.
 * Modify the gcn "framework"
