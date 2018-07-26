@@ -12,7 +12,7 @@ import logging
 import time 
 import argparse
 
-from CV_utils import AcrossSubjectCV
+from CV_utils import AcrossSubjectCV, WithinOneSubjectCV
 
 cwd = os.getcwd()
 subject_list = ['S01', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S10', 'S11', 'S12']
@@ -60,6 +60,7 @@ Y = np.load(cwd+'/y.npy')
 Y_main = [1 if ((y==1) or (y==2)) else 0 for y in Y]
 list = ['S04', 'S10', 'S12', 'S05']
 tmp = AcrossSubjectCV(estimator_graph, matrix_graph, Y_main, list )
+#tmp = WithinOneSubjectCV(estimator_graph, matrix_graph, Y_main)
 logger.info("Global results for best graph feature estimator from accross subject CV are: \n"+tmp[0].to_string())
 print(tmp[1])
 for i in range(len(list)):
