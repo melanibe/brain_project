@@ -1,11 +1,8 @@
 TO DO LIST
-* RERUN ALL THE EXP WITH THE UPSAMPLING WITH THE CORRECTED VERSION !!!!!!
-* Create exp folder, more generally organize the code folder in subfolder cause it is becoming a mess. And do extended code checking and tidying. Put the unsused file in deprecated folder
-* Create the experiment launcher to run all level of CV (with CV functions created in CV utils) with the classic classifiers.
 * Modify the gcn "framework"
     - want a train and test method
     - ensure it is compatible with the CV function I have done. I can surely wrap it in a customized estimator class (see old project)
-* Results should be saved somewhere like logs of whatever
+* check all validation
 * See what can be done with the feature importance plotting like in sex classification or comp bio paper
 * Plots ?
     
