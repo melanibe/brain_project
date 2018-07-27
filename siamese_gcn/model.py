@@ -57,11 +57,11 @@ class GraphConvNetwork(nn.Module):
     
     def forward(self, feats, adj1, adj2, adj3, adj4, adj5):
         # GCN learns node representation - same weights for all
-        x1 = self.gcn_node((feats, adj1))
-        x2 = self.gcn_node((feats, adj2))
-        x3 = self.gcn_node((feats, adj3))
-        x4 = self.gcn_node((feats, adj4))
-        x5 = self.gcn_node((feats, adj5))
+        x1 = self.gcn_node(feats, adj1)
+        x2 = self.gcn_node(feats, adj2)
+        x3 = self.gcn_node(feats, adj3)
+        x4 = self.gcn_node(feats, adj4)
+        x5 = self.gcn_node(feats, adj5)
        
         # Adding GAP layer
         x1 = torch.sum(x1,1) # -> [batch, 128] graph representation summing all nodes
