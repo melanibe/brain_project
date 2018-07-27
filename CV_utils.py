@@ -31,27 +31,35 @@ class UpsampleStratifiedKFold:
 
 
 ###### ACROSS CV #####
-def AcrossSubjectCV(estimator, X, Y, subject_list=long_subject_list, upsample=True):
+def AcrossSubjectCV(estimator, subject_list=long_subject_list, upsample=False, mat = 'std'):
     """ Implements custom CV to calculate the across subject accuracy.
     10-fold CV since we have 10 subjects.
-    """
-    p = pd.read_pickle(cwd+'/subj_list')
+    """   
     roc_auc=[]
     accuracyCV = []
     confusion = []
+    conf_perc = []
     for s in subject_list:
-        _, subj_idx = p.loc[p['subj']==s, 'idx'].values[0], p.loc[p['subj']==s, 'subj_idx'].values[0]
+        X_test, Y_test = np.load(cwd+'/matrices/{}_{}.npy'.format(s, mat)), np.load(cwd+'/matrices/{}_y.npy'.format(s))
+        Y_test = [1 if ((y==1) or (y==2)) else 0 for y in Y_test]
         print("Preparing fold only {}".format(s))
-        X_test, Y_test = [X[i] for i in subj_idx], [Y[i] for i in subj_idx]
         print("Preparing fold except {}".format(s))
-        other_idx = []
+        first=True
         for other in subject_list:
             if not other == s:
-                other_idx += p.loc[p['subj']==other, 'subj_idx'].values[0]
-        X_train, Y_train = [X[i] for i in other_idx], [Y[i] for i in other_idx]
+                print(other)
+                if first:
+                    X_train = np.load(cwd+'/matrices/{}_{}.npy'.format(other, mat))
+                    Y_train = np.load(cwd+'/matrices/{}_y.npy'.format(other))
+                    first=False
+                else:
+                    X_train = np.concatenate((X_train, np.load(cwd+'/matrices/{}_{}.npy'.format(other, mat))), axis =0)
+                    Y_train = np.concatenate((Y_train, np.load(cwd+'/matrices/{}_y.npy'.format(other))), axis =0)        
+        Y_train = [1 if ((y==1) or (y==2)) else 0 for y in Y_train]
         n = len(X_train)
         print(n)
         print(len(X_test))
+        print(n+len(X_test))
         if upsample:
         # perform upsampling only on training fold
             neg_ix = np.where([Y_train[i]==0 for i in range(n)])[0]
@@ -69,7 +77,10 @@ def AcrossSubjectCV(estimator, X, Y, subject_list=long_subject_list, upsample=Tr
         pred = estimator.predict(X_test)
         roc_auc.append(roc_auc_score(Y_test, estimator.predict_proba(X_test)[:,1]))
         accuracyCV.append(accuracy_score(Y_test, pred))
-        confusion.append(confusion_matrix(Y_test, pred))
+        conf = confusion_matrix(Y_test, pred)
+        confusion.append(conf)
+        true_freq = np.reshape(np.repeat(np.sum(conf, 1),2,axis=0), (2,2))
+        conf_perc.append(np.nan_to_num(conf.astype(float)/true_freq))
         print(roc_auc[-1], accuracyCV[-1])
     metrics = pd.DataFrame()
     metrics['auc'] = roc_auc
@@ -81,23 +92,28 @@ def AcrossSubjectCV(estimator, X, Y, subject_list=long_subject_list, upsample=Tr
     results['min'] = [np.min(roc_auc), np.min(accuracyCV)]
     results['max'] = [np.max(roc_auc), np.max(accuracyCV)]
     results.index=['roc_auc', 'accuracy']
-    return(results, metrics, confusion)
+    return(results, metrics, confusion, conf_perc)
 
 
 
-def WithinOneSubjectCV(estimator, X, Y, subject = ['S12','S10','S12','S05'], k=10, upsample=False):
+def WithinOneSubjectCV(estimator, subject = ['S12','S10','S12','S05'], k=10, upsample=False, mat = 'std'):
     """ Implements custom CV within one or more subject, 3-fold CV
     """
     roc_auc=[]
     accuracyCV = []
     confusion = []
-    p = pd.read_pickle(cwd+'/subj_list')
-    idx_subjects = []
+    conf_perc = []
+    first=True
     for s in subject:
-        subj_idx = p.loc[p['subj']==s, 'subj_idx'].values[0]
-        idx_subjects += subj_idx
-    X, Y =  [X[i] for i in idx_subjects], [Y[i] for i in idx_subjects]
+        if first:
+            X = np.load(cwd+'/matrices/{}_{}.npy'.format(s, mat))
+            Y = np.load(cwd+'/matrices/{}_y.npy'.format(s))
+            first=False
+        else:
+            X = np.concatenate((X, np.load(cwd+'/matrices/{}_{}.npy'.format(s, mat))), axis =0)
+            Y = np.concatenate((Y, np.load(cwd+'/matrices/{}_y.npy'.format(s))), axis =0)        
     Y = [1 if ((y==1) or (y==2)) else 0 for y in Y]
+    print(np.shape(X))
     if upsample:
         print('up')
         cv_gen = UpsampleStratifiedKFold(k)
@@ -113,7 +129,10 @@ def WithinOneSubjectCV(estimator, X, Y, subject = ['S12','S10','S12','S05'], k=1
         pred = estimator.predict(X_test)
         roc_auc.append(roc_auc_score(Y_test, estimator.predict_proba(X_test)[:,1]))
         accuracyCV.append(accuracy_score(Y_test, pred))
-        confusion.append(confusion_matrix(Y_test, pred))
+        conf = confusion_matrix(Y_test, pred)
+        confusion.append(conf)
+        true_freq = np.reshape(np.repeat(np.sum(conf, 1),2,axis=0), (2,2))
+        conf_perc.append(np.nan_to_num(conf.astype(float)/true_freq))
         print(roc_auc[-1], accuracyCV[-1])
     metrics = pd.DataFrame()
     metrics['auc'] = roc_auc
@@ -124,5 +143,5 @@ def WithinOneSubjectCV(estimator, X, Y, subject = ['S12','S10','S12','S05'], k=1
     results['min'] = [np.min(roc_auc), np.min(accuracyCV)]
     results['max'] = [np.max(roc_auc), np.max(accuracyCV)]
     results.index=['roc_auc', 'accuracy']
-    return(results, metrics, confusion)
+    return(results, metrics, confusion, conf_perc)
 
