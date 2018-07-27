@@ -79,15 +79,15 @@ pipeKBest_RF = Pipeline([('var', VarianceThreshold(threshold=0)), \
                         ('std', StandardScaler()), \
                         ('PerBest', SelectPercentile(percentile=50)),\
                          ('rf', RandomForestClassifier(n_estimators=10000, min_samples_split=30))])
-GCN_estimator = GCN_estimator_wrapper(checkpoint_file, logger, 32, 64, 128, n_epochs=8, reset=True)
-logger.info("GCN params 32-64-128-8 epochs")
+GCN_estimator = GCN_estimator_wrapper(checkpoint_file, logger, 32, 64, 128, n_epochs=10, reset=True)
+logger.info("GCN params 32-64-128-10 epochs")
 
 
 
 ############ WITHIN ONE SUBJECT CV - 5-FOLD FOR 4 SUBJECTS #############
 reliable_subj = ['S12', 'S10', 'S04', 'S05']
 estimators = [uniform, constant,  pipePCA_SVM, pipeKBest_RF, GCN_estimator]
-names = ['uniform', 'constant',  'PCA and SVM', 'KBest and RF', 'GCN']
+names = ['uniform', 'constant', 'GCN',  'PCA and SVM', 'KBest and RF']
 
 for subject in reliable_subj:
     for i in range(len(estimators)):
