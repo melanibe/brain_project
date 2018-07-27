@@ -51,8 +51,8 @@ except: #for cluster run
 ############ LOADING DATA #############
 print("The feature matrix is {}".format(type_agg))
 try:
-    X = np.load(cwd+"/{}.npy".format(type_agg))
-    Y = np.load(cwd+"/y.npy")
+    X = np.load(cwd+"/matrices/{}.npy".format(type_agg))
+    Y = np.load(cwd+"/matrices/y.npy")
 except:
     print("Not found. Should prepare X and Y first.")
 n,m = np.shape(X)

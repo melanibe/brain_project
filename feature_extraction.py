@@ -12,8 +12,8 @@ def extract_opt_2class(name='std', y = 'y', graph=False, p_threshold=0.05):
     if name=='X':
         X,Y = prepare_X()
     else:
-        Y = np.load(cwd+'/{}.npy'.format(y))
-        X = np.load(cwd+'/{}.npy'.format(name))
+        Y = np.load(cwd+'/matrices/{}.npy'.format(y))
+        X = np.load(cwd+'/matrices/{}.npy'.format(name))
         m, _ = np.shape(X)
         X = np.reshape(X,(m, 4095, -1))
     _, _, nfreq = np.shape(X)
@@ -41,7 +41,7 @@ def extract_opt_2class(name='std', y = 'y', graph=False, p_threshold=0.05):
         X_new[:,l[0], l[1]] = X[:,l[0], l[1]]
         return(X_new, Y)
     else:
-        np.save(cwd+'/{}_sel'.format(name), np.reshape(X[:,l[0], l[1]],(-1,n)))
+        np.save(cwd+'/matrices/{}_sel'.format(name), np.reshape(X[:,l[0], l[1]],(-1,n)))
 
 
 
