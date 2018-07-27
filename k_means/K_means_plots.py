@@ -27,7 +27,7 @@ else:
 
 # Change directory if necessary
 try: #for local run
-    os.chdir("/Users/melaniebernhardt/Documents/RESEARCH PROJECT/")
+    os.chdir("/Users/melaniebernhardt/Documents/brain_project/")
     cwd = os.getcwd()
 except: #for cluster run
     cwd = os.getcwd()
@@ -35,8 +35,8 @@ except: #for cluster run
 
 
 ############ LOADING DATA #############
-X = np.load(cwd+"/{}.npy".format(type_agg))
-Y = np.load(cwd+"/{}.npy".format(y))
+X = np.load(cwd+"/matrices/{}.npy".format(type_agg))
+Y = np.load(cwd+"/matrices/{}.npy".format(y))
 n,m = np.shape(X)
 
 

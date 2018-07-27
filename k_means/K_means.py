@@ -38,7 +38,7 @@ else:
     y = 'y'
 
 try: #for local run
-    os.chdir("/Users/melaniebernhardt/Documents/RESEARCH PROJECT/")
+    os.chdir("/Users/melaniebernhardt/Documents/brain_project/")
     cwd = os.getcwd()
     data_folder = cwd + '/DATA/'
 except: #for cluster run
@@ -75,8 +75,8 @@ logger.info("The type is {}".format(type_agg))
 
 
 ############ LOADING DATA #############
-X = np.load(cwd+"/{}.npy".format(type_agg))
-Y = np.load(cwd+"/{}.npy".format(y))
+X = np.load(cwd+"/matrices/{}.npy".format(type_agg))
+Y = np.load(cwd+"/matrices/{}.npy".format(y))
 
 n,m = np.shape(X)
 # X_train, X_test, Y_train_full, Y_test_full = train_test_split(X, Y, test_size=test_size, random_state=42)
