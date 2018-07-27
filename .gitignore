@@ -9,3 +9,4 @@ nn/runs
 nn_old/
 siamese_gcn/__pycache__/
 siamese_gcn/runs/
+/validation_logs/
