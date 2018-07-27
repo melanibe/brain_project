@@ -7,9 +7,12 @@ from torch.utils.data import Dataset
 
 class ToTorchDataset(Dataset):
     """From matrix to torch dataset follwing tutorial"""
-    def __init__(self, X, Y):
-        self.X = X
-        self.Y = Y
+    def __init__(self, X, Y=None):
+        self.X = np.asarray(X)
+        if Y is not None:
+            self.Y = np.asarray(Y)
+        else:
+            self.Y = None
 
     def __len__(self):
         return len(self.X)

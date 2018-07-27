@@ -15,8 +15,8 @@ from sklearn.metrics import roc_auc_score
 from sklearn.preprocessing import normalize
 from scipy.linalg import block_diag
 
-from model import GraphConvNetwork, GraphConvNetwork_paper, GCN_multiple
-from data_utils import build_onegraph_A, ToTorchDataset
+from siamese_gcn.model import GraphConvNetwork, GraphConvNetwork_paper, GCN_multiple
+from siamese_gcn.data_utils import build_onegraph_A, ToTorchDataset
 
 
 def training_step(gcn, data, optimizer, criterion, device):

@@ -1,9 +1,9 @@
 import numpy as np
 import torch
 
-from model import GraphConvNetwork, GraphConvNetwork_paper, GCN_multiple
-from train_utils import training_loop, training_step, val_step
-from data_utils import ToTorchDataset, build_onegraph_A, data_to_matrices
+from siamese_gcn.model import GraphConvNetwork, GraphConvNetwork_paper, GCN_multiple
+from siamese_gcn.train_utils import training_loop, training_step, val_step
+from siamese_gcn.data_utils import ToTorchDataset, build_onegraph_A, data_to_matrices
 
 from sklearn.base import BaseEstimator, ClassifierMixin
 
@@ -14,7 +14,7 @@ class GCN_estimator_wrapper(BaseEstimator, ClassifierMixin):
     def __init__(self, checkpoint_file, logger, \
                 h1=None, h2=None, out=None, in_feat=90, \
                 model_type='normal', batch_size=32, lr = 0.001, n_epochs=20, \
-                device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu")):
+                device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu"), reset = False):
         """ init the model with all the model and training parameters
         Args:
             TO DO
@@ -31,9 +31,15 @@ class GCN_estimator_wrapper(BaseEstimator, ClassifierMixin):
         self.device = device
         self.checkpoint_file = checkpoint_file
         self.logger = logger
+        self.h1 = h1
+        self.h2 = h2
+        self.out = out
+        self.reset = reset #reset the network at each fit call ? TRUE for CV !!!
     
     def fit(self, X_train, Y_train, X_val=None, Y_val=None):
         """ fit = training loop """
+        if self.reset:
+            self.gcn = GraphConvNetwork(90, self.h1, self.h2, self.out).to(self.device)
         training_loop(self.gcn, X_train, Y_train, \
                         self.batch_size, self.lr, self.n_epochs, \
                         self.device, self.checkpoint_file, self.logger, \
@@ -42,7 +48,7 @@ class GCN_estimator_wrapper(BaseEstimator, ClassifierMixin):
     def predict(self, X_test):
         """ predict labels """
         self.gcn.eval()
-        test = ToTorchDataset(X_test, None)
+        test = ToTorchDataset(np.asarray(X_test))
         testloader = torch.utils.data.DataLoader(test, batch_size=self.batch_size, shuffle=False, num_workers=4)
         y_pred = []
         with torch.no_grad():

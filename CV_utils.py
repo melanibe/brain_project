@@ -2,7 +2,6 @@ import numpy as np
 import pandas as pd
 import os
 
-from build_features import index_subj
 from sklearn.metrics import roc_auc_score, accuracy_score, confusion_matrix
 from sklearn.model_selection import GridSearchCV, train_test_split, StratifiedKFold, RepeatedStratifiedKFold
 from sklearn.model_selection import cross_val_score
@@ -70,7 +69,6 @@ def AcrossSubjectCV(estimator, subject_list=long_subject_list, upsample=False, m
             Y_train = np.append([0 for i in neg_ix], [1 for i in aug_pos_ix])
         n = len(X_train)
         print(np.sum([Y_train[i]==1 for i in range(n)])/float(np.sum([Y_train[i]==0 for i in range(n)])))
-        print(np.shape(X_train))
         print("Fit the estimator")
         estimator.fit(X_train, Y_train)
         print("Calculating the metrics")

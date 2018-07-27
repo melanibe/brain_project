@@ -14,6 +14,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.dummy import DummyClassifier
 
+from siamese_gcn.GCN_estimator import GCN_estimator_wrapper
 from CV_utils import WithinOneSubjectCV, AcrossSubjectCV
 
 """ Runs the validation runs of classification report. For now only to use with std, other matrices not built.
@@ -63,6 +64,10 @@ file_handler.setFormatter(formatter)
 file_handler.setLevel(logging.DEBUG)
 logger.addHandler(file_handler)
 
+# for GCN saving - shoudl put an option saving = False
+checkpoint_dir = cwd + '/siamese_gcn/runs/'
+checkpoint_file = checkpoint_dir + t
+
 ############### CLASSIFIERS TO EVALUATE ############
 uniform = DummyClassifier(strategy='uniform')
 constant = DummyClassifier(constant=0, strategy='constant')
@@ -74,14 +79,15 @@ pipeKBest_RF = Pipeline([('var', VarianceThreshold(threshold=0)), \
                         ('std', StandardScaler()), \
                         ('PerBest', SelectPercentile(percentile=50)),\
                          ('rf', RandomForestClassifier(n_estimators=10000, min_samples_split=30))])
+GCN_estimator = GCN_estimator_wrapper(checkpoint_file, logger, 32, 64, 128, n_epochs=8, reset=True)
+logger.info("GCN params 32-64-128-8 epochs")
+
+
 
 ############ WITHIN ONE SUBJECT CV - 5-FOLD FOR 4 SUBJECTS #############
 reliable_subj = ['S12', 'S10', 'S04', 'S05']
-estimators = [uniform, constant,  pipePCA_SVM, pipeKBest_RF]
-names = ['uniform', 'constant',  'PCA and SVM', 'KBest and RF']
-
-estimators = [uniform]
-names = ['uniform']
+estimators = [uniform, constant,  pipePCA_SVM, pipeKBest_RF, GCN_estimator]
+names = ['uniform', 'constant',  'PCA and SVM', 'KBest and RF', 'GCN']
 
 for subject in reliable_subj:
     for i in range(len(estimators)):
@@ -97,10 +103,9 @@ for subject in reliable_subj:
         logger.info("Mean percentage confusion matrix from within subject CV \n: {}".format(pd.DataFrame(np.mean(conf_perc,0))))
         logger.info("Std of percentage confusion matrices from within subject CV is: \n {} \n".format(pd.DataFrame(np.std(conf_perc, 0)).to_string()))
 
+
+
 ############ WITHIN 4 SUBJECT CV - 3FOLD FOR 4 SUBJECTS #############
-reliable_subj = ['S12', 'S10', 'S04', 'S05']
-estimators = [uniform, constant,  pipePCA_SVM, pipeKBest_RF]
-names = ['uniform', 'constant',  'PCA and SVM', 'KBest and RF']
 for subject in reliable_subj:
     for i in range(len(estimators)):
         print(subject)
@@ -113,10 +118,9 @@ for subject in reliable_subj:
         logger.info("Mean percentage confusion matrix from within 4 subject CV \n: {}".format(pd.DataFrame(np.mean(conf_perc,0))))
         logger.info("Std of percentage confusion matrices from within  4 subject CV is: \n {} \n".format(pd.DataFrame(np.std(conf_perc, 0)).to_string()))
 
+
+
 ############ ACROSS 4 SUBJECT CV #############
-reliable_subj = ['S12', 'S10', 'S04', 'S05']
-estimators = [uniform, constant,  pipePCA_SVM, pipeKBest_RF]
-names = ['uniform', 'constant',  'PCA and SVM', 'KBest and RF']
 for subject in reliable_subj:
     for i in range(len(estimators)):
         print(subject)
