@@ -1,8 +1,10 @@
 TO DO LIST
 * Modify the gcn "framework"
-    - want a train and test method
-    - ensure it is compatible with the CV function I have done. I can surely wrap it in a customized estimator class (see old project)
+    - want a train and test method DONE
+    - ensure it is compatible with the CV function I have done. I can surely wrap it in a customized estimator class (see old project) DONE :))))
 * check all validation
+* run validation also on gcn
+* summarize the results 
 * See what can be done with the feature importance plotting like in sex classification or comp bio paper
 * Plots ?
     
