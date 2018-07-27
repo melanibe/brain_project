@@ -45,7 +45,7 @@ else:
     y = 'y'
 
 try: # for local run
-    os.chdir("/Users/melaniebernhardt/Documents/RESEARCH PROJECT/")
+    os.chdir("/Users/melaniebernhardt/Documents/brain_project/")
     cwd = os.getcwd()
     data_folder = cwd + '/DATA/'
 except: 
@@ -78,8 +78,8 @@ logger.info("The feature matrix is {}".format(type_agg))
 
 ############ LOADING DATA #############
 try:
-    X = np.load(cwd+"/{}.npy".format(type_agg))
-    Y = np.load(cwd+"/{}.npy".format(y))
+    X = np.load(cwd+"/matrices/{}.npy".format(type_agg))
+    Y = np.load(cwd+"/matrices/{}.npy".format(y))
     logger.info("loaded X and y")
 except:
     logger.error("Not found Have to prepare X and Y first")

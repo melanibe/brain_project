@@ -56,7 +56,7 @@ estimator_graph = Pipeline([('var', VarianceThreshold(threshold=0)), \
                             ('PerBest', SelectPercentile(percentile=50)), \
                             ('rf', RandomForestClassifier(n_estimators=10, min_samples_split=30, n_jobs=njobs))])        
 matrix_graph = np.load(cwd+'/graph_features/std_tresh0.05.npy')
-Y = np.load(cwd+'/y.npy')
+Y = np.load(cwd+'/matrices/y.npy')
 Y_main = [1 if ((y==1) or (y==2)) else 0 for y in Y]
 list = ['S04', 'S10', 'S12', 'S05']
 tmp = AcrossSubjectCV(estimator_graph, matrix_graph, Y_main, list )
@@ -70,7 +70,7 @@ logger.info("Results per subject for best graph feature estimator from accross s
 
 
 ########### best with orig
-matrix_full = np.load(cwd+'/X_sel.npy')
+matrix_full = np.load(cwd+'/matrices/X_sel.npy')
 estimator_full = Pipeline([('var', VarianceThreshold(threshold=0)), \
                             ('std', StandardScaler()), \
                             ('PerBest', SelectPercentile(percentile=10)), \
