@@ -30,7 +30,7 @@ class UpsampleStratifiedKFold:
 
 
 ###### ACROSS CV #####
-def AcrossSubjectCV(estimator, subject_list=long_subject_list, upsample=False, mat = 'std'):
+def AcrossSubjectCV(estimator, subject_list=long_subject_list, mat = 'std', upsample=False):
     """ Implements custom CV to calculate the across subject accuracy.
     10-fold CV since we have 10 subjects.
     """   

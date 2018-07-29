@@ -107,14 +107,19 @@ def training_loop(gcn, X_train, Y_train, batch_size, lr, device, checkpoint_file
         val = ToTorchDataset(X_val, Y_val)
         valloader = torch.utils.data.DataLoader(val, batch_size=batch_size, shuffle=False, num_workers=4)
     # Creating the batches (balanced classes)
-    weight = (3/2)*np.ones(len(X_train))
-    weight[[y==1 for y in Y_train]] = 3
+    #weight = (3/2)*np.ones(len(X_train))
+    #weight[[y==1 for y in Y_train]] = 3
     torch.manual_seed(42)
     #sampler = torch.utils.data.sampler.WeightedRandomSampler(weight, len(X_train), replacement=True)
     #trainloader = torch.utils.data.DataLoader(train, batch_size=batch_size, sampler = sampler, num_workers=4)
     trainloader = torch.utils.data.DataLoader(train, batch_size=batch_size, shuffle=True, num_workers=4)
     # Define loss and optimizer
-    weight = torch.tensor([1,1], dtype=torch.float32)
+    n0 = np.sum([y==0 for y in Y_train])
+    n1 = np.sum([y==1 for y in Y_train])
+    n = n1+n0
+    print(n0, n1)
+    print([n/n0, n/n1])
+    weight = torch.tensor([n/n0, n/n1], dtype=torch.float32)
     criterion = nn.CrossEntropyLoss(weight=weight) # applies softmax + cross entropy
     optimizer = optim.Adam(gcn.parameters(), lr=lr, weight_decay=5e-4)
     losses = loss_val = acc_val = roc_val = [] 
@@ -122,9 +127,9 @@ def training_loop(gcn, X_train, Y_train, batch_size, lr, device, checkpoint_file
     counter = 0
     # Training loop
     train_step=0
-    while(train_step<250):
+    while(train_step<1000):
         for data in trainloader:
-            if(train_step<250):
+            if(train_step<1000):
                 current_loss = training_step(gcn, data, optimizer, criterion, device)
                 train_step+=1
                 current_batch_loss += current_loss
