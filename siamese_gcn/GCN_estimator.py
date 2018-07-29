@@ -13,7 +13,7 @@ class GCN_estimator_wrapper(BaseEstimator, ClassifierMixin):
     """
     def __init__(self, checkpoint_file, logger, \
                 h1=None, h2=None, out=None, in_feat=90, \
-                model_type='normal', batch_size=32, lr = 0.001, n_epochs=20, \
+                model_type='normal', batch_size=32, lr = 0.001, \
                 device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu"), reset = False):
         """ init the model with all the model and training parameters
         Args:
@@ -27,7 +27,6 @@ class GCN_estimator_wrapper(BaseEstimator, ClassifierMixin):
             self.gcn = GraphConvNetwork(90, h1, h2, out).to(device)
         self.batch_size = batch_size
         self.lr = lr
-        self.n_epochs = n_epochs
         self.device = device
         self.checkpoint_file = checkpoint_file
         self.logger = logger
@@ -41,7 +40,7 @@ class GCN_estimator_wrapper(BaseEstimator, ClassifierMixin):
         if self.reset:
             self.gcn = GraphConvNetwork(90, self.h1, self.h2, self.out).to(self.device)
         training_loop(self.gcn, X_train, Y_train, \
-                        self.batch_size, self.lr, self.n_epochs, \
+                        self.batch_size, self.lr, \
                         self.device, self.checkpoint_file, self.logger, \
                         X_val, Y_val)
     
