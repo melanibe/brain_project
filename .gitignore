@@ -11,3 +11,4 @@ siamese_gcn/__pycache__/
 siamese_gcn/runs/
 /validation_logs/
 DEPRECATED/NN/runs/
+reports/
