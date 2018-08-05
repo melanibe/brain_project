@@ -69,8 +69,8 @@ checkpoint_dir = cwd + '/siamese_gcn/runs/'
 checkpoint_file = checkpoint_dir + t
 
 ############### CLASSIFIERS TO EVALUATE ############
-uniform = DummyClassifier(strategy='uniform')
-constant = DummyClassifier(constant=0, strategy='constant')
+#uniform = DummyClassifier(strategy='uniform')
+#constant = DummyClassifier(constant=0, strategy='constant')
 pipePCA_SVM = Pipeline([('var', VarianceThreshold(threshold=0)),\
                             ('pca', PCA(n_components=500)),\
                             ('std', StandardScaler()), \
@@ -80,27 +80,28 @@ pipeKBest_RF = Pipeline([('var', VarianceThreshold(threshold=0)), \
                         ('PerBest', SelectPercentile(percentile=50)),\
                          ('rf', RandomForestClassifier(n_estimators=10000, min_samples_split=30, n_jobs=4))])
 GCN_estimator = GCN_estimator_wrapper(checkpoint_file, logger, 32, 64, 128, reset=True)
-logger.info("GCN params 32-64-128-350 steps")
+logger.info("GCN params 32-64-128-1000 steps")
 #GCN_estimator = GCN_estimator_wrapper(checkpoint_file, logger, 256, 128, 128, batch_size= 128, reset=True)
 
 
 ############ WITHIN ONE SUBJECT CV - 5-FOLD FOR 4 SUBJECTS #############
 reliable_subj = ['S12', 'S10', 'S04', 'S05']
-estimators = [GCN_estimator, pipePCA_SVM, pipeKBest_RF]
-names = ['GCN',  'PCA and SVM', 'KBest and RF']
+#estimators = [GCN_estimator, pipePCA_SVM, pipeKBest_RF]
+#names = ['GCN',  'PCA and SVM', 'KBest and RF']
 
+estimators = [GCN_estimator]
+names = ['GCN']
 
 for subject in reliable_subj:
     for i in range(len(estimators)):
         print(subject)
-        results, metrics, confusion, conf_perc = WithinOneSubjectCV(estimators[i], subject=[subject], k=4, mat=mat)
+        results, metrics, confusion, conf_perc = WithinOneSubjectCV(estimators[i], logger, subject=[subject], k=4, mat=mat)
         logger.info("Results for subject {} for estimator {}".format(subject, names[i]))
-        logger.info("Mean results accross folds for {} estimator with subject CV are: \n".format(names[i])+results.to_string())
         logger.debug("Results by fold: \n"+metrics.to_string())
         for k in range(len(confusion)):
-            logger.debug("Confusion matrices across folds are: \n"+pd.DataFrame(confusion[k]).to_string())
+            logger.debug("Confusion matrices fold {} is: \n".format(k)+pd.DataFrame(confusion[k]).to_string())
+        logger.info("Mean results accross folds for {} estimator with subject CV are: \n".format(names[i])+results.to_string())
         logger.info("Mean of confusion matrices from within subject CV is: \n {} \n".format(pd.DataFrame(np.mean(confusion, 0)).to_string()))
-        #perc = np.asarray(confusion)/np.sum(confusion, 1).astype(float)
         logger.info("Mean percentage confusion matrix from within subject CV \n: {}".format(pd.DataFrame(np.mean(conf_perc,0))))
         logger.info("Std of percentage confusion matrices from within subject CV is: \n {} \n".format(pd.DataFrame(np.std(conf_perc, 0)).to_string()))
 
@@ -108,11 +109,12 @@ for subject in reliable_subj:
 
 ############ WITHIN 4 SUBJECT CV - 3FOLD FOR 4 SUBJECTS #############
 for i in range(len(estimators)):
-    results, metrics, confusion, conf_perc = WithinOneSubjectCV(estimators[i], reliable_subj, k=10, mat=mat)
-    logger.info("Mean results accross folds for {} estimator with subject CV are: \n".format(names[i])+results.to_string())
+    logger.info("Result for within 4 subject (mixed) CV for {} estimator").format(names[i])
+    results, metrics, confusion, conf_perc = WithinOneSubjectCV(estimators[i], logger, reliable_subj, k=10, mat=mat)
     logger.debug("Results per fold: \n"+metrics.to_string())
     for k in range(len(confusion)):
-        logger.debug("Confusion matrices per folds are: \n"+pd.DataFrame(confusion[k]).to_string())
+        logger.debug("Confusion matrices fold {} is: \n".format(k)+pd.DataFrame(confusion[k]).to_string())
+    logger.info("Mean results accross folds for {} estimator with subject CV are: \n".format(names[i])+results.to_string())
     logger.info("Mean of confusion matrices from within 4 subject CV are: \n {} \n".format(pd.DataFrame(np.mean(confusion, 0)).to_string()))
     logger.info("Mean percentage confusion matrix from within 4 subject CV \n: {}".format(pd.DataFrame(np.mean(conf_perc,0))))
     logger.info("Std of percentage confusion matrices from within  4 subject CV is: \n {} \n".format(pd.DataFrame(np.std(conf_perc, 0)).to_string()))
@@ -120,14 +122,15 @@ for i in range(len(estimators)):
 
 
 ############ ACROSS 4 SUBJECT CV #############
-estimators = [GCN_estimator, pipePCA_SVM, pipeKBest_RF]
-names = ['GCN',  'PCA and SVM', 'KBest and RF']
+#estimators = [GCN_estimator, pipePCA_SVM, pipeKBest_RF]
+#names = ['GCN',  'PCA and SVM', 'KBest and RF']
 for i in range(len(estimators)):
-    results, metrics, confusion, conf_perc = AcrossSubjectCV(estimators[i], reliable_subj, mat, upsample=False)
-    logger.info("Mean results accross folds for {} estimator with subject CV are: \n".format(names[i])+results.to_string())
+    logger.info("Results for across 4 subject CV for {} estimator".format(names[i]))
+    results, metrics, confusion, conf_perc = AcrossSubjectCV(estimators[i], logger, reliable_subj, mat, upsample=False)
     logger.info("Results per fold: \n"+metrics.to_string())
     for k in range(len(confusion)):
         logger.info("Confusion matrices per folds are: \n"+pd.DataFrame(confusion[k]).to_string())
+    logger.info("Mean results accross folds for {} estimator with subject CV are: \n".format(names[i])+results.to_string())
     logger.info("Mean of confusion matrices from across subject CV are: \n {} \n".format(pd.DataFrame(np.mean(confusion, 0)).to_string()))
     logger.info("Mean percentage confusion matrix from across subject CV \n: {}".format(pd.DataFrame(np.mean(conf_perc,0))))
     logger.info("Std of percentage confusion matrices from across subject CV is: \n {} \n".format(pd.DataFrame(np.std(conf_perc, 0)).to_string()))

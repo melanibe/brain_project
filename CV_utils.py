@@ -30,7 +30,7 @@ class UpsampleStratifiedKFold:
 
 
 ###### ACROSS CV #####
-def AcrossSubjectCV(estimator, subject_list=long_subject_list, mat = 'std', upsample=False):
+def AcrossSubjectCV(estimator, logger, subject_list=long_subject_list, mat = 'std', upsample=False):
     """ Implements custom CV to calculate the across subject accuracy.
     10-fold CV since we have 10 subjects.
     """   
@@ -68,9 +68,12 @@ def AcrossSubjectCV(estimator, subject_list=long_subject_list, mat = 'std', upsa
             X_train = np.reshape(np.append([X_train[i] for i in neg_ix], [X_train[i] for i in aug_pos_ix]),(len(neg_ix)+len(aug_pos_ix),-1))
             Y_train = np.append([0 for i in neg_ix], [1 for i in aug_pos_ix])
         n = len(X_train)
-        print(np.sum([Y_train[i]==1 for i in range(n)])/float(np.sum([Y_train[i]==0 for i in range(n)])))
+        logger.info("REM/nonREM ratio current fold: {}".format(np.sum([Y_train[i]==1 for i in range(n)])/float(np.sum([Y_train[i]==0 for i in range(n)]))))
         print("Fit the estimator")
-        estimator.fit(X_train, Y_train)
+        try: #GCN fit takes X_val and Y_val in arguments but not the others
+            estimator.fit(X_train, Y_train, X_test, Y_test, "_across_testsubj_{}".format(s))
+        except:
+            estimator.fit(X_train, Y_train)
         print("Calculating the metrics")
         pred = estimator.predict(X_test)
         roc_auc.append(roc_auc_score(Y_test, estimator.predict_proba(X_test)[:,1]))
@@ -94,7 +97,7 @@ def AcrossSubjectCV(estimator, subject_list=long_subject_list, mat = 'std', upsa
 
 
 
-def WithinOneSubjectCV(estimator, subject = ['S12','S10','S12','S05'], k=10, upsample=False, mat = 'std'):
+def WithinOneSubjectCV(estimator, logger, subject = ['S12','S10','S12','S05'], k=10, upsample=False, mat = 'std'):
     """ Implements custom CV within one or more subject, 3-fold CV
     """
     roc_auc=[]
@@ -117,12 +120,19 @@ def WithinOneSubjectCV(estimator, subject = ['S12','S10','S12','S05'], k=10, ups
         cv_gen = UpsampleStratifiedKFold(k)
     else:
         cv_gen = StratifiedKFold(k, shuffle=True, random_state=42)
+    nsubj = len(subject)
+    fold = 0
     for train_index, test_index in cv_gen.split(X, Y):
+        fold +=1
         X_train, X_test = [X[i] for i in train_index], [X[i] for i in test_index]
         Y_train, Y_test = [Y[i] for i in train_index], [Y[i] for i in test_index]
         # check proportion
-        print(np.sum([Y[i]==1 for i in train_index])/float(np.sum([Y[i]==0 for i in train_index])))
-        estimator.fit(X_train, Y_train)
+        logger.info("REM/nonREM ratio current train fold: {}".format(np.sum([Y_train[i]==1 for i in range(len(X_train))])/float(np.sum([Y_train[i]==0 for i in range(len(X_train))]))))
+        logger.info("REM/nonREM ratio current test fold: {}".format(np.sum([Y_test[i]==1 for i in range(len(X_test))])/float(np.sum([Y_test[i]==0 for i in range(len(X_test))]))))
+        try: #GCN fit takes X_val and Y_val in arguments but not the others
+            estimator.fit(X_train, Y_train, X_test, Y_test, "_within_{}_subj_fold_{}".format(nsubj, fold))
+        except:
+            estimator.fit(X_train, Y_train)
         print("Calculating the metrics")
         pred = estimator.predict(X_test)
         roc_auc.append(roc_auc_score(Y_test, estimator.predict_proba(X_test)[:,1]))

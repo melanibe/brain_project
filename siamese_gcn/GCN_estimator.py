@@ -35,13 +35,13 @@ class GCN_estimator_wrapper(BaseEstimator, ClassifierMixin):
         self.out = out
         self.reset = reset #reset the network at each fit call ? TRUE for CV !!!
     
-    def fit(self, X_train, Y_train, X_val=None, Y_val=None):
+    def fit(self, X_train, Y_train, X_val=None, Y_val=None, filename=""):
         """ fit = training loop """
         if self.reset:
             self.gcn = GraphConvNetwork(90, self.h1, self.h2, self.out).to(self.device)
         training_loop(self.gcn, X_train, Y_train, \
                         self.batch_size, self.lr, \
-                        self.device, self.checkpoint_file, self.logger, \
+                        self.device, self.logger, self.checkpoint_file, filename, \
                         X_val, Y_val)
     
     def predict(self, X_test):

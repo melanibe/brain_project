@@ -18,6 +18,7 @@ from scipy.linalg import block_diag
 from siamese_gcn.model import GraphConvNetwork, GraphConvNetwork_paper, GCN_multiple
 from siamese_gcn.data_utils import build_onegraph_A, ToTorchDataset
 
+import matplotlib.pyplot as plt
 
 def training_step(gcn, data, optimizer, criterion, device):
     gcn.train()
@@ -93,22 +94,20 @@ def val_step(gcn, valloader, batch_size, device, criterion, logger):
             _, predicted = torch.max(outputs_val.data, 1)
             total += labels.size(0)
             correct += (predicted == labels).sum().item()
-            loss_val += criterion(outputs_val, labels)
-            c += 1
+            loss_val += criterion(outputs_val, labels).item()
+            c += 1.0
         roc = roc_auc_score(np.concatenate(yvalidation), np.concatenate(proba)[:,1])
         acc = correct / total
         logger.info('Val loss is: %.3f'%(loss_val/c))
         logger.info('Accuracy of the network val set : %.3f%% \n and ROC is %.3f' % (100*acc, roc))
     return(loss_val/c, roc, acc)
 
-def training_loop(gcn, X_train, Y_train, batch_size, lr, device, checkpoint_file, logger, X_val=None, Y_val=None):
+def training_loop(gcn, X_train, Y_train, batch_size, lr, device, logger, checkpoint_file, filename="", X_val=None, Y_val=None):
     train = ToTorchDataset(X_train, Y_train)
     if X_val is not None:
         val = ToTorchDataset(X_val, Y_val)
         valloader = torch.utils.data.DataLoader(val, batch_size=batch_size, shuffle=False, num_workers=4)
     # Creating the batches (balanced classes)
-    #weight = (3/2)*np.ones(len(X_train))
-    #weight[[y==1 for y in Y_train]] = 3
     torch.manual_seed(42)
     #sampler = torch.utils.data.sampler.WeightedRandomSampler(weight, len(X_train), replacement=True)
     #trainloader = torch.utils.data.DataLoader(train, batch_size=batch_size, sampler = sampler, num_workers=4)
@@ -122,7 +121,11 @@ def training_loop(gcn, X_train, Y_train, batch_size, lr, device, checkpoint_file
     weight = torch.tensor([n/n0, n/n1], dtype=torch.float32)
     criterion = nn.CrossEntropyLoss(weight=weight) # applies softmax + cross entropy
     optimizer = optim.Adam(gcn.parameters(), lr=lr, weight_decay=5e-4)
-    losses = loss_val = acc_val = roc_val = [] 
+    losses = []
+    loss_val = []
+    acc_val = []
+    roc_val = []
+    step_val = [] 
     current_batch_loss = 0
     counter = 0
     # Training loop
@@ -136,30 +139,37 @@ def training_loop(gcn, X_train, Y_train, batch_size, lr, device, checkpoint_file
                 losses += [current_loss]
                 counter += 1
             #print statistics in the epoch might be better - to do
-            if (train_step%25==0) and (counter != 0):
+            if (train_step%10==0) and (counter != 0):
                 logger.debug("Mean of the training loss for step %d is %.3f" % (train_step, current_batch_loss/(counter)))
                 current_batch_loss = 0
                 counter = 0
+                if X_val is not None:
+                    loss_val_e, roc_e, acc_e = val_step(gcn, valloader, batch_size, device, criterion, logger)
+                    loss_val.append(loss_val_e)
+                    step_val.append(train_step)
+                    roc_val.append(roc_e)
+                    acc_val.append(acc_e)
+        torch.save(gcn, checkpoint_file + filename +'.pt')
+        losses_str = list(map(str, losses))
+        with open(checkpoint_file + filename + '_train_losses.csv', 'w') as outfile:
+            outfile.write("\n".join(losses_str))
         if X_val is not None:
-            loss_val_e, roc_e, acc_e = val_step(gcn, valloader, batch_size, device, criterion, logger)
-            loss_val.append(loss_val_e)
-            roc_val.append(roc_e)
-            acc_val.append(acc_e)
-        torch.save(gcn, checkpoint_file +'.pt')
-        losses = list(map(str, losses))
-        with open(checkpoint_file + '_losses.csv', 'w') as outfile:
-            outfile.write("\n".join(losses))
-        if X_val is not None:
-            loss_val = list(map(str, loss_val))
+            str_loss_val = list(map(str, loss_val))
             roc_val = list(map(str, roc_val))
             acc_val = list(map(str, acc_val))
             # save the losses for plotting and monitor training
-            with open(checkpoint_file + '_lossval.csv', 'w') as outfile:
-                outfile.write("\n".join(loss_val))
-            with open(checkpoint_file + '_rocval.csv', 'w') as outfile:
+            with open(checkpoint_file + filename + '_lossval.csv', 'w') as outfile:
+                outfile.write("\n".join(str_loss_val))
+            with open(checkpoint_file+ filename + '_rocval.csv', 'w') as outfile:
                 outfile.write("\n".join(roc_val))
-            with open(checkpoint_file + '_accval.csv', 'w') as outfile:
+            with open(checkpoint_file+ filename + '_accval.csv', 'w') as outfile:
                 outfile.write("\n".join(acc_val))
-
-
+    if X_val is not None:
+        print("here")
+        t = time.time()
+        plt.clf()
+        plt.plot(losses)
+        plt.plot(step_val, loss_val)
+        #plt.show()
+        plt.savefig(checkpoint_file+"{}_fig.png".format(filename)) # put filename as an argument
 
