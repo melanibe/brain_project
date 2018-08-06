@@ -130,7 +130,10 @@ def WithinOneSubjectCV(estimator, logger, subject = ['S12','S10','S12','S05'], k
         logger.info("REM/nonREM ratio current train fold: {}".format(np.sum([Y_train[i]==1 for i in range(len(X_train))])/float(np.sum([Y_train[i]==0 for i in range(len(X_train))]))))
         logger.info("REM/nonREM ratio current test fold: {}".format(np.sum([Y_test[i]==1 for i in range(len(X_test))])/float(np.sum([Y_test[i]==0 for i in range(len(X_test))]))))
         try: #GCN fit takes X_val and Y_val in arguments but not the others
-            estimator.fit(X_train, Y_train, X_test, Y_test, "_within_{}_subj_fold_{}".format(nsubj, fold))
+            if nsubj==1: # for the file names
+                estimator.fit(X_train, Y_train, X_test, Y_test, "_within_subj_{}_fold_{}".format(subject[0], fold))
+            else: # for the file names
+                estimator.fit(X_train, Y_train, X_test, Y_test, "_within_{}_subjects_fold_{}".format(nsubj, fold))
         except:
             estimator.fit(X_train, Y_train)
         print("Calculating the metrics")

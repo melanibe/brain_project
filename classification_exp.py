@@ -42,6 +42,13 @@ try: #for local run
 except: #for cluster run
     cwd = os.getcwd()
 
+# creating the directory for the run  
+time.time()
+t = time.strftime('%d%b%y_%H%M%S')
+checkpoint_dir = cwd+'/runs/'+t +'/'
+os.makedirs(checkpoint_dir)
+print('Saving to '+  checkpoint_dir)
+
 
 ############### LOGGER SETUP #############
 # create logger
@@ -56,17 +63,13 @@ formatter = logging.Formatter('%(asctime)s - %(levelname)s - %(message)s')
 ch.setFormatter(formatter)
 # add ch to logger
 logger.addHandler(ch)
-time.time()
-t = time.strftime('%d%b%y_%H%M%S')
-LOG_FILENAME= cwd + '/validation_logs/' + '{}_classification_'.format(mat)+ t +'.log'
+LOG_FILENAME= checkpoint_dir + '{}_classification_'.format(mat)+ t +'.log'
 file_handler = logging.FileHandler(LOG_FILENAME)
 file_handler.setFormatter(formatter)
 file_handler.setLevel(logging.DEBUG)
 logger.addHandler(file_handler)
 
-# for GCN saving - shoudl put an option saving = False
-checkpoint_dir = cwd + '/siamese_gcn/runs/'
-checkpoint_file = checkpoint_dir + t
+
 
 ############### CLASSIFIERS TO EVALUATE ############
 #uniform = DummyClassifier(strategy='uniform')
@@ -79,8 +82,7 @@ pipeKBest_RF = Pipeline([('var', VarianceThreshold(threshold=0)), \
                         ('std', StandardScaler()), \
                         ('PerBest', SelectPercentile(percentile=50)),\
                          ('rf', RandomForestClassifier(n_estimators=10000, min_samples_split=30, n_jobs=4))])
-GCN_estimator = GCN_estimator_wrapper(checkpoint_file, logger, 32, 64, 128, reset=True)
-logger.info("GCN params 32-64-128-1000 steps")
+GCN_estimator = GCN_estimator_wrapper(checkpoint_dir, logger, 32, 64, 128, nsteps = 1000, reset=True)
 #GCN_estimator = GCN_estimator_wrapper(checkpoint_file, logger, 256, 128, 128, batch_size= 128, reset=True)
 
 
@@ -109,7 +111,7 @@ for subject in reliable_subj:
 
 ############ WITHIN 4 SUBJECT CV - 3FOLD FOR 4 SUBJECTS #############
 for i in range(len(estimators)):
-    logger.info("Result for within 4 subject (mixed) CV for {} estimator").format(names[i])
+    logger.info("Result for within 4 subject (mixed) CV for {} estimator".format(names[i]))
     results, metrics, confusion, conf_perc = WithinOneSubjectCV(estimators[i], logger, reliable_subj, k=10, mat=mat)
     logger.debug("Results per fold: \n"+metrics.to_string())
     for k in range(len(confusion)):
