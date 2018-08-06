@@ -1,10 +1,8 @@
 TO DO LIST
-* Modify the gcn "framework"
-    - want a train and test method DONE
-    - ensure it is compatible with the CV function I have done. I can surely wrap it in a customized estimator class (see old project) DONE :))))
-* check all validation
-* run validation also on gcn ----->> IT WOOOOOORRRKKKKSSS :)))))
-* summarize the results 
+* check the thing with balanced random forest
+* find the best training step (plots seems to indicate that 1000 steps is really overfitting) try to add more dropout or weight decay to see the impact
+
+Later
 * See what can be done with the feature importance plotting like in sex classification or comp bio paper
 * Plots ?
     
