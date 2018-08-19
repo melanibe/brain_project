@@ -38,8 +38,9 @@ def AcrossSubjectCV(estimator, logger, subject_list=long_subject_list, mat = 'st
     accuracyCV = []
     confusion = []
     conf_perc = []
+    bal_acc = []
     for s in subject_list:
-        X_test, Y_test = np.load(cwd+'/matrices/{}_{}.npy'.format(s, mat)), np.load(cwd+'/matrices/{}_y.npy'.format(s))
+        X_test, Y_test = np.load(cwd+'/matrices/{}/{}.npy'.format(mat, s)), np.load(cwd+'/matrices/{}_y.npy'.format(s))
         Y_test = [1 if ((y==1) or (y==2)) else 0 for y in Y_test]
         print("Preparing fold only {}".format(s))
         print("Preparing fold except {}".format(s))
@@ -48,11 +49,11 @@ def AcrossSubjectCV(estimator, logger, subject_list=long_subject_list, mat = 'st
             if not other == s:
                 print(other)
                 if first:
-                    X_train = np.load(cwd+'/matrices/{}_{}.npy'.format(other, mat))
+                    X_train = np.load(cwd+'/matrices/{}/{}.npy'.format(mat, other))
                     Y_train = np.load(cwd+'/matrices/{}_y.npy'.format(other))
                     first=False
                 else:
-                    X_train = np.concatenate((X_train, np.load(cwd+'/matrices/{}_{}.npy'.format(other, mat))), axis =0)
+                    X_train = np.concatenate((X_train, np.load(cwd+'/matrices/{}/{}.npy'.format(mat, other))), axis =0)
                     Y_train = np.concatenate((Y_train, np.load(cwd+'/matrices/{}_y.npy'.format(other))), axis =0)        
         Y_train = [1 if ((y==1) or (y==2)) else 0 for y in Y_train]
         n = len(X_train)
@@ -70,29 +71,34 @@ def AcrossSubjectCV(estimator, logger, subject_list=long_subject_list, mat = 'st
         n = len(X_train)
         logger.info("REM/nonREM ratio current fold: {}".format(np.sum([Y_train[i]==1 for i in range(n)])/float(np.sum([Y_train[i]==0 for i in range(n)]))))
         print("Fit the estimator")
-        try: #GCN fit takes X_val and Y_val in arguments but not the others
-            estimator.fit(X_train, Y_train, X_test, Y_test, "_across_testsubj_{}".format(s))
-        except:
-            estimator.fit(X_train, Y_train)
+        #try: #GCN fit takes X_val and Y_val in arguments but not the others
+        estimator.fit(X_train, Y_train, X_test, Y_test, "_across_testsubj_{}".format(s))
+        #except:
+         #   estimator.fit(X_train, Y_train)
         print("Calculating the metrics")
         pred = estimator.predict(X_test)
         roc_auc.append(roc_auc_score(Y_test, estimator.predict_proba(X_test)[:,1]))
         accuracyCV.append(accuracy_score(Y_test, pred))
+        Y_test = np.asarray(Y_test)
+        pos_acc = accuracy_score(Y_test[Y_test==1], pred[Y_test==1])
+        neg_acc = accuracy_score(Y_test[Y_test==0], pred[Y_test==0])
+        bal_acc.append((pos_acc+neg_acc)/2)
         conf = confusion_matrix(Y_test, pred)
         confusion.append(conf)
         true_freq = np.reshape(np.repeat(np.sum(conf, 1),2,axis=0), (2,2))
         conf_perc.append(np.nan_to_num(conf.astype(float)/true_freq))
         print(roc_auc[-1], accuracyCV[-1])
     metrics = pd.DataFrame()
+    metrics['balanced_acc'] = bal_acc
     metrics['auc'] = roc_auc
     metrics['accuracy'] = accuracyCV
     metrics.index = subject_list
     results = pd.DataFrame()
-    results['mean'] = [np.mean(roc_auc), np.mean(accuracyCV)]
-    results['std'] = [np.std(roc_auc), np.std(accuracyCV)]
-    results['min'] = [np.min(roc_auc), np.min(accuracyCV)]
-    results['max'] = [np.max(roc_auc), np.max(accuracyCV)]
-    results.index=['roc_auc', 'accuracy']
+    results['mean'] = [np.mean(roc_auc), np.mean(accuracyCV), np.mean(bal_acc)]
+    results['std'] = [np.std(roc_auc), np.std(accuracyCV),np.std(bal_acc)]
+    results['min'] = [np.min(roc_auc), np.min(accuracyCV),np.min(bal_acc)]
+    results['max'] = [np.max(roc_auc), np.max(accuracyCV),np.max(bal_acc)]
+    results.index=['roc_auc', 'accuracy', 'balanced_accuracy']
     return(results, metrics, confusion, conf_perc)
 
 
@@ -104,14 +110,15 @@ def WithinOneSubjectCV(estimator, logger, subject = ['S12','S10','S12','S05'], k
     accuracyCV = []
     confusion = []
     conf_perc = []
+    bal_acc = []
     first=True
     for s in subject:
         if first:
-            X = np.load(cwd+'/matrices/{}_{}.npy'.format(s, mat))
+            X = np.load(cwd+'/matrices/{}/{}.npy'.format(mat, s))
             Y = np.load(cwd+'/matrices/{}_y.npy'.format(s))
             first=False
         else:
-            X = np.concatenate((X, np.load(cwd+'/matrices/{}_{}.npy'.format(s, mat))), axis =0)
+            X = np.concatenate((X, np.load(cwd+'/matrices/{}/{}.npy'.format(mat, s))), axis =0)
             Y = np.concatenate((Y, np.load(cwd+'/matrices/{}_y.npy'.format(s))), axis =0)        
     Y = [1 if ((y==1) or (y==2)) else 0 for y in Y]
     print(np.shape(X))
@@ -140,19 +147,24 @@ def WithinOneSubjectCV(estimator, logger, subject = ['S12','S10','S12','S05'], k
         pred = estimator.predict(X_test)
         roc_auc.append(roc_auc_score(Y_test, estimator.predict_proba(X_test)[:,1]))
         accuracyCV.append(accuracy_score(Y_test, pred))
+        Y_test = np.asarray(Y_test)
+        pos_acc = accuracy_score(Y_test[Y_test==1], pred[Y_test==1])
+        neg_acc = accuracy_score(Y_test[Y_test==0], pred[Y_test==0])
+        bal_acc.append((pos_acc+neg_acc)/2)
         conf = confusion_matrix(Y_test, pred)
         confusion.append(conf)
         true_freq = np.reshape(np.repeat(np.sum(conf, 1),2,axis=0), (2,2))
         conf_perc.append(np.nan_to_num(conf.astype(float)/true_freq))
-        print(roc_auc[-1], accuracyCV[-1])
+        print(roc_auc[-1], accuracyCV[-1], bal_acc[-1])
     metrics = pd.DataFrame()
+    metrics['balanced_acc'] = bal_acc
     metrics['auc'] = roc_auc
     metrics['accuracy'] = accuracyCV
     results = pd.DataFrame()
-    results['mean'] = [np.mean(roc_auc), np.mean(accuracyCV)]
-    results['std'] = [np.std(roc_auc), np.std(accuracyCV)]
-    results['min'] = [np.min(roc_auc), np.min(accuracyCV)]
-    results['max'] = [np.max(roc_auc), np.max(accuracyCV)]
-    results.index=['roc_auc', 'accuracy']
+    results['mean'] = [np.mean(roc_auc), np.mean(accuracyCV), np.mean(bal_acc)]
+    results['std'] = [np.std(roc_auc), np.std(accuracyCV),np.std(bal_acc)]
+    results['min'] = [np.min(roc_auc), np.min(accuracyCV),np.min(bal_acc)]
+    results['max'] = [np.max(roc_auc), np.max(accuracyCV),np.max(bal_acc)]
+    results.index=['roc_auc', 'accuracy', 'balanced_accuracy']
     return(results, metrics, confusion, conf_perc)
 
