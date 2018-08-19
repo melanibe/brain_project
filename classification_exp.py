@@ -22,8 +22,14 @@ from CV_utils import WithinOneSubjectCV, AcrossSubjectCV
 
 ############## PARAMS SETUP ###############
 parser = argparse.ArgumentParser()
-parser.add_argument("-n", "--njobs", help="number of jobs", type=int)
-parser.add_argument("-t", "--type", help="choose the matrix")
+
+parser.add_argument("-est", \
+                    "--estimatorlist", \
+                    nargs='*', \
+                    help="list of estimator among uniform constant, gcn, pcasvm, rf")
+
+parser.add_argument("-n", "--njobs", help="number of jobs for sklearn", type=int)
+parser.add_argument("-t", "--type", help="choose the preprocessing, one or std aggregation")
 args = parser.parse_args()
 
 if args.type:
@@ -72,8 +78,8 @@ logger.addHandler(file_handler)
 
 
 ############### CLASSIFIERS TO EVALUATE ############
-#uniform = DummyClassifier(strategy='uniform')
-#constant = DummyClassifier(constant=0, strategy='constant')
+uniform = DummyClassifier(strategy='uniform')
+constant = DummyClassifier(constant=0, strategy='constant')
 pipePCA_SVM = Pipeline([('var', VarianceThreshold(threshold=0)),\
                             ('pca', PCA(n_components=500)),\
                             ('std', StandardScaler()), \
@@ -83,21 +89,35 @@ pipeKBest_RF = Pipeline([('var', VarianceThreshold(threshold=0)), \
                         ('PerBest', SelectPercentile(percentile=50)),\
                          ('rf', RandomForestClassifier(n_estimators=10000, min_samples_split=30, n_jobs=4))])
 GCN_estimator = GCN_estimator_wrapper(checkpoint_dir, logger, 32, 64, 128, nsteps = 1000, reset=True)
+
+args_to_est = {'uniform': uniform, 'constant': constant, 'pcasvm': pipePCA_SVM, 'rf': pipeKBest_RF, 'gcn': GCN_estimator}
+try:
+    if args.estimatorlist:
+        print(args.estimatorlist)
+        estimators=[]
+        for a in args.estimatorlist:
+            estimators.append(args_to_est[a])
+        print(estimators)
+    else:
+        estimators = [GCN_estimator, pipePCA_SVM, pipeKBest_RF]
+except:
+    logger.error("You provided a wrong argument for estimator")
+
 #GCN_estimator = GCN_estimator_wrapper(checkpoint_file, logger, 256, 128, 128, batch_size= 128, reset=True)
 
 
 ############ WITHIN ONE SUBJECT CV - 5-FOLD FOR 4 SUBJECTS #############
 reliable_subj = ['S12', 'S10', 'S04', 'S05']
 #estimators = [GCN_estimator, pipePCA_SVM, pipeKBest_RF]
-#names = ['GCN',  'PCA and SVM', 'KBest and RF']
+names = ['GCN',  'PCA and SVM', 'KBest and RF']
 
-estimators = [GCN_estimator]
-names = ['GCN']
+#estimators = [pipeKBest_RF]
+#names = ['KBest and RF upsample']
 
 for subject in reliable_subj:
     for i in range(len(estimators)):
         print(subject)
-        results, metrics, confusion, conf_perc = WithinOneSubjectCV(estimators[i], logger, subject=[subject], k=4, mat=mat)
+        results, metrics, confusion, conf_perc = WithinOneSubjectCV(estimators[i], logger, subject=[subject], k=4, mat=mat, upsample=True)
         logger.info("Results for subject {} for estimator {}".format(subject, names[i]))
         logger.debug("Results by fold: \n"+metrics.to_string())
         for k in range(len(confusion)):
@@ -112,7 +132,7 @@ for subject in reliable_subj:
 ############ WITHIN 4 SUBJECT CV - 3FOLD FOR 4 SUBJECTS #############
 for i in range(len(estimators)):
     logger.info("Result for within 4 subject (mixed) CV for {} estimator".format(names[i]))
-    results, metrics, confusion, conf_perc = WithinOneSubjectCV(estimators[i], logger, reliable_subj, k=10, mat=mat)
+    results, metrics, confusion, conf_perc = WithinOneSubjectCV(estimators[i], logger, reliable_subj, k=10, mat=mat, upsample=True)
     logger.debug("Results per fold: \n"+metrics.to_string())
     for k in range(len(confusion)):
         logger.debug("Confusion matrices fold {} is: \n".format(k)+pd.DataFrame(confusion[k]).to_string())
@@ -128,7 +148,7 @@ for i in range(len(estimators)):
 #names = ['GCN',  'PCA and SVM', 'KBest and RF']
 for i in range(len(estimators)):
     logger.info("Results for across 4 subject CV for {} estimator".format(names[i]))
-    results, metrics, confusion, conf_perc = AcrossSubjectCV(estimators[i], logger, reliable_subj, mat, upsample=False)
+    results, metrics, confusion, conf_perc = AcrossSubjectCV(estimators[i], logger, reliable_subj, mat, upsample=True)
     logger.info("Results per fold: \n"+metrics.to_string())
     for k in range(len(confusion)):
         logger.info("Confusion matrices per folds are: \n"+pd.DataFrame(confusion[k]).to_string())
