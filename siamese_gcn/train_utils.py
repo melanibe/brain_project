@@ -65,9 +65,7 @@ def val_step(gcn, valloader, batch_size, device, criterion, logger):
     """ used for eval on validation set during training.
     """
     gcn.eval()
-    correct = 0
-    total = 0
-    proba = []
+    #proba = []
     loss_val = 0
     y_true = np.asarray([])
     pred_val = np.asarray([])
@@ -97,31 +95,33 @@ def val_step(gcn, valloader, batch_size, device, criterion, logger):
                 A5[i] = torch.tensor(build_onegraph_A(coh_array5[i]))
             y_true = np.append(y_true, labels)
             outputs_val = gcn(X, A1, A2, A3, A4, A5)
-            proba.append(outputs_val.data.cpu().numpy())
+            #proba.append(outputs_val.data.cpu().numpy())
             _, predicted = torch.max(outputs_val.data, 1)
             pred_val= np.append(pred_val, predicted.cpu().numpy())
             loss_val += criterion(outputs_val, labels).item()
             c += 1.0
-        roc = roc_auc_score(y_true, np.concatenate(proba)[:,1])
+        #roc = roc_auc_score(y_true, np.concatenate(proba)[:,1])
         pos_acc = accuracy_score(y_true[y_true==1], pred_val[y_true==1])
         neg_acc = accuracy_score(y_true[y_true==0], pred_val[y_true==0])
         bal = (pos_acc+neg_acc)/2
         acc = accuracy_score(y_true, pred_val)
         logger.info('Val loss is: %.3f'%(loss_val/c))
-        logger.info('Accuracy of the network val set : %.3f%% \n and ROC is %.3f' % (100*acc, roc))
+        #logger.info('Accuracy of the network val set : %.3f%% \n and ROC is %.3f' % (100*acc, roc))
+        logger.info('Accuracy of the network val set : %.3f%%' % (100*acc))
         logger.info('Balanced accuracy of the network val set : %.3f%%' % (100*bal))
-    return(loss_val/c, roc, acc, bal)
+    #return(loss_val/c, roc, acc, bal)
+    return(loss_val/c, acc, bal)
 
 def training_loop(gcn, X_train, Y_train, batch_size, lr, device, logger, checkpoint_file, filename="", X_val=None, Y_val=None, nsteps=1000):
     train = ToTorchDataset(X_train, Y_train)
     if X_val is not None:
         val = ToTorchDataset(X_val, Y_val)
-        valloader = torch.utils.data.DataLoader(val, batch_size=batch_size, shuffle=False, num_workers=4)
+        valloader = torch.utils.data.DataLoader(val, batch_size=batch_size, shuffle=False)
     # Creating the batches (balanced classes)
     torch.manual_seed(42)
     #sampler = torch.utils.data.sampler.WeightedRandomSampler(weight, len(X_train), replacement=True)
     #trainloader = torch.utils.data.DataLoader(train, batch_size=batch_size, sampler = sampler, num_workers=4)
-    trainloader = torch.utils.data.DataLoader(train, batch_size=batch_size, shuffle=True, num_workers=4)
+    trainloader = torch.utils.data.DataLoader(train, batch_size=batch_size, shuffle=True)
     # Define loss and optimizer
     n0 = np.sum([y==0 for y in Y_train])
     n1 = np.sum([y==1 for y in Y_train])
@@ -135,7 +135,7 @@ def training_loop(gcn, X_train, Y_train, batch_size, lr, device, logger, checkpo
     train_bal_acc = []
     loss_val = []
     acc_val = []
-    roc_val = []
+    #roc_val = []
     step_val = []
     bal_acc_val = [] 
     current_batch_loss = 0
@@ -161,10 +161,11 @@ def training_loop(gcn, X_train, Y_train, batch_size, lr, device, logger, checkpo
                 current_batch_loss = 0
                 counter = 0
                 if X_val is not None:
-                    loss_val_e, roc_e, acc_e, bal_e = val_step(gcn, valloader, batch_size, device, criterion, logger)
+                    #loss_val_e, roc_e, acc_e, bal_e = val_step(gcn, valloader, batch_size, device, criterion, logger)
+                    loss_val_e, acc_e, bal_e = val_step(gcn, valloader, batch_size, device, criterion, logger)
                     loss_val.append(loss_val_e)
                     step_val.append(train_step)
-                    roc_val.append(roc_e)
+                    #roc_val.append(roc_e)
                     acc_val.append(acc_e)
                     bal_acc_val.append(bal_e)
     if X_val is not None:
