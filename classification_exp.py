@@ -17,7 +17,13 @@ from sklearn.dummy import DummyClassifier
 from siamese_gcn.GCN_estimator import GCN_estimator_wrapper
 from CV_utils import WithinOneSubjectCV, AcrossSubjectCV
 
-""" Runs the validation runs of classification report. For now only to use with std, other matrices not built.
+""" TO DO:
+add parser argument for GCN parameter
+could also add parser argument to choose the type of cross val to run
+"""
+
+""" 
+Runs the validation runs of classification report. For now only to use with std, other matrices not built.
 """
 
 ############## PARAMS SETUP ###############
@@ -42,10 +48,10 @@ if args.njobs:
 else:
     njobs = 3
 
-try: #for local run
+try: # for local run
     os.chdir("/Users/melaniebernhardt/Documents/brain_project/")
     cwd = os.getcwd()
-except: #for cluster run
+except: # for cluster run
     cwd = os.getcwd()
 
 # creating the directory for the run  
@@ -91,6 +97,7 @@ pipeKBest_RF = Pipeline([('var', VarianceThreshold(threshold=0)), \
 GCN_estimator = GCN_estimator_wrapper(checkpoint_dir, logger, 32, 64, 128, nsteps = 1000, reset=True)
 
 args_to_est = {'uniform': uniform, 'constant': constant, 'pcasvm': pipePCA_SVM, 'rf': pipeKBest_RF, 'gcn': GCN_estimator}
+
 try:
     if args.estimatorlist:
         print(args.estimatorlist)
@@ -103,16 +110,11 @@ try:
 except:
     logger.error("You provided a wrong argument for estimator")
 
-#GCN_estimator = GCN_estimator_wrapper(checkpoint_file, logger, 256, 128, 128, batch_size= 128, reset=True)
 
 
 ############ WITHIN ONE SUBJECT CV - 5-FOLD FOR 4 SUBJECTS #############
 reliable_subj = ['S12', 'S10', 'S04', 'S05']
-#estimators = [GCN_estimator, pipePCA_SVM, pipeKBest_RF]
 names = ['GCN',  'PCA and SVM', 'KBest and RF']
-
-#estimators = [pipeKBest_RF]
-#names = ['KBest and RF upsample']
 
 for subject in reliable_subj:
     for i in range(len(estimators)):
@@ -144,8 +146,6 @@ for i in range(len(estimators)):
 
 
 ############ ACROSS 4 SUBJECT CV #############
-#estimators = [GCN_estimator, pipePCA_SVM, pipeKBest_RF]
-#names = ['GCN',  'PCA and SVM', 'KBest and RF']
 for i in range(len(estimators)):
     logger.info("Results for across 4 subject CV for {} estimator".format(names[i]))
     results, metrics, confusion, conf_perc = AcrossSubjectCV(estimators[i], logger, reliable_subj, mat, upsample=True)
