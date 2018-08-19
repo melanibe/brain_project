@@ -58,6 +58,8 @@ class ToTorch10Dataset(Dataset):
 def build_onegraph_A(one_coh_arr, super=False):
     """ builds the A hat matrix of the paper for one
     sample.
+    https://github.com/brainstorm-tools/brainstorm3/blob/master/toolbox/process/functions/process_compress_sym.m shows that
+    the flat matrix contains the lower triangular values of the initial symmetric matrix.
     """
     # First construct weighted adjacency matrix
     A = np.zeros((90,90))
