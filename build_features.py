@@ -68,35 +68,33 @@ def transform_X_one(X):
     """ Prepare the matrix that aggregates the values over all frequencies.
     i.e. One matrix in the report.
     """
-   # X, Y = prepare_X()
-    #np.save(cwd+"/matrices/y", Y)
     X_one = np.mean(X[:,:,:], axis=2)
-   # np.save(cwd+"/matrices/one", X_one)
     print(np.shape(X_one))
     return (X_one)    
-
-def transform_X_ten(X): 
-    """ DEPRECATED.
-    Averaged over 10 freqeuncy bins.
-    """
-    #np.save(cwd+"/matrices/y", Y)
-    l = []
-    i = 0
-    while (i<50):
-        l.append(np.mean(X[:,:,i:i+5], axis=2))
-        i = i+5
-    X_ten = np.concatenate(l,axis=1)
-    #np.save(cwd+"/matrices/ten", X_ten)
-    print(np.shape(X_ten))
-    return (X_ten)  
 
 
 # for testing
 if __name__=='__main__':
+    # creating the sub-directories to save the matrices if necessary
+    dir = cwd+'/matrices/std/'
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+        print('Created '+  dir)
+    dir = cwd+'/matrices/one/'
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+        print('Created '+  dir)
+    dir = cwd+'/matrices/all/'
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+        print('Created '+  dir)
     for s in subject_list:
         print(s)
         X, Y = prepare_X([s])
-        X = transform_X_std(X)
-        print(np.shape(X))
-        np.save(cwd+'/matrices/{}_std'.format(s), X)
+        Xstd = transform_X_std(X)
+        Xone = transform_X_one(X)
+        print(np.shape(Xstd))
+        np.save(cwd+'/matrices/all/{}'.format(s), X)
+        np.save(cwd+'/matrices/std/{}'.format(s), Xstd)
+        np.save(cwd+'/matrices/one/{}'.format(s), Xone)
         np.save(cwd+'/matrices/{}_y'.format(s), Y)
