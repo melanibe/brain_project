@@ -15,7 +15,6 @@ from sklearn.metrics import roc_auc_score, accuracy_score
 from sklearn.preprocessing import normalize
 from scipy.linalg import block_diag
 
-from siamese_gcn.model import GraphConvNetwork, GraphConvNetwork_paper, GCN_multiple
 from siamese_gcn.data_utils import build_onegraph_A, ToTorchDataset
 
 import matplotlib.pyplot as plt
@@ -177,21 +176,3 @@ def training_loop(gcn, X_train, Y_train, batch_size, lr, device, logger, checkpo
         plt.plot(train_bal_acc)
         plt.plot(step_val, bal_acc_val)
         plt.savefig(checkpoint_file+"{}_bal_acc.png".format(filename))
-        """ if we want to save everything (I think useless)
-        torch.save(gcn, checkpoint_file + filename +'.pt')
-        losses_str = list(map(str, losses))
-        with open(checkpoint_file + filename + '_train_losses.csv', 'w') as outfile:
-            outfile.write("\n".join(losses_str))   
-        if X_val is not None:
-            str_loss_val = list(map(str, loss_val))
-            roc_val = list(map(str, roc_val))
-            acc_val = list(map(str, acc_val))
-            # save the losses for plotting and monitor training
-            with open(checkpoint_file + filename + '_lossval.csv', 'w') as outfile:
-                outfile.write("\n".join(str_loss_val))
-            with open(checkpoint_file+ filename + '_rocval.csv', 'w') as outfile:
-                outfile.write("\n".join(roc_val))
-            with open(checkpoint_file+ filename + '_accval.csv', 'w') as outfile:
-                outfile.write("\n".join(acc_val))
-        """
-
