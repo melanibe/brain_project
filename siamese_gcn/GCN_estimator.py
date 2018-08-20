@@ -1,7 +1,7 @@
 import numpy as np
 import torch
 
-from siamese_gcn.model import GraphConvNetwork, GraphConvNetwork_paper, GCN_multiple
+from siamese_gcn.model import GraphConvNetwork
 from siamese_gcn.train_utils import training_loop, training_step, val_step
 from siamese_gcn.data_utils import ToTorchDataset, build_onegraph_A, data_to_matrices
 
@@ -13,22 +13,16 @@ class GCN_estimator_wrapper(BaseEstimator, ClassifierMixin):
     """
     def __init__(self, checkpoint_file, logger, \
                 h1=None, h2=None, out=None, in_feat=90, \
-                model_type='normal', batch_size=32, lr = 0.001, nsteps=1000, \
-                device=torch.device("cuda:0" if torch.cuda.is_available() else "cpu"), reset = False):
+                batch_size=32, lr=0.001, nsteps=1000, \
+                reset = False):
         """ init the model with all the model and training parameters
         Args:
             TO DO
         """
-        if model_type=='paper':
-            self.gcn = GraphConvNetwork_paper().to(device)
-        elif model_type == 'multi':
-            self.gcn = GCN_multiple().to(device)
-        else:
-            self.gcn = GraphConvNetwork(90, h1, h2, out).to(device)
+        self.gcn = GraphConvNetwork(90, h1, h2, out)
         self.batch_size = batch_size
         self.lr = lr
         self.nsteps = nsteps
-        self.device = device
         self.checkpoint_file = checkpoint_file
         self.logger = logger
         self.h1 = h1
@@ -37,13 +31,14 @@ class GCN_estimator_wrapper(BaseEstimator, ClassifierMixin):
         self.reset = reset # reset the network at each fit call ? TRUE for CV !!!
         logger.info("Success init of GCN params {}-{}-{}".format(self.h1, self.h2, self.out))
         logger.info("Training parameters {} steps and {} learning rate".format(self.nsteps, self.lr))
+    
     def fit(self, X_train, Y_train, X_val=None, Y_val=None, filename=""):
         """ fit = training loop """
         if self.reset:
-            self.gcn = GraphConvNetwork(90, self.h1, self.h2, self.out).to(self.device)
+            self.gcn = GraphConvNetwork(90, self.h1, self.h2, self.out)
         training_loop(self.gcn, X_train, Y_train, \
                         self.batch_size, self.lr, \
-                        self.device, self.logger, self.checkpoint_file, filename, \
+                        self.logger, self.checkpoint_file, filename, \
                         X_val, Y_val, nsteps=self.nsteps)
     
     def predict(self, X_test):
