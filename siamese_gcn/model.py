@@ -8,14 +8,14 @@ from torch.autograd import  Variable
 from torch.nn.parameter import Parameter
 from torch.nn.modules.module import Module
 
-
-""" TO DO
-- tune layers, number hidden neurons, dropout
-- write the model code better (i.e. not copy paste the GCN model but write a separate class for the 
-whole model and one for the GCN part)
+""" 
+File defining the layers and the graph class network. 
 """
 
 class GraphConvLayer(Module):
+    """ This class is taken from https://github.com/tkipf/pygcn.
+    It implements one graph convolution layer. 
+    """
     def __init__(self, in_features, out_features, bias=True):
         super(GraphConvLayer, self).__init__()
         self.in_features = in_features
@@ -33,9 +33,12 @@ class GraphConvLayer(Module):
         output = torch.bmm(adj, hidden)
         return output
 
-class MySingleGCN(nn.Module):
+class NodeGCN(nn.Module):
+    """ Defining the node graph convolution network 
+    to derive the nodes features. 
+    """
     def __init__(self, in_feats=90, h1=32, h2=64, out_feats=256):
-        super(MySingleGCN, self).__init__()
+        super(NodeGCN, self).__init__()
         self.gc1 = GraphConvLayer(in_feats, h1)
         self.gc2 = GraphConvLayer(h1, h2)
         self.gc3 = GraphConvLayer(h2, out_feats)
@@ -49,33 +52,38 @@ class MySingleGCN(nn.Module):
         x = F.relu(self.gc3(x, adj)) # -> [batch, 90, h2]
         return(x)
 
-class GraphConvNetwork(nn.Module):
+class GraphClassificationNet(nn.Module):
+    """ Whole graph classification network.
+    Combines the node classification, sum pooling, fully connected layer.
+    """
     def __init__(self, in_feats=90, h1=64, h2=64, out_feats=3):
-        super(GraphConvNetwork, self).__init__()
-        self.gcn_node = MySingleGCN(in_feats, h1, h2, out_feats)
+        super(GraphClassificationNet, self).__init__()
+        self.gcn_node = NodeGCN(in_feats, h1, h2, out_feats)
         self.out = nn.Linear(5*out_feats, 2)
     
     def forward(self, feats, adj1, adj2, adj3, adj4, adj5):
-        # GCN learns node representation - same weights for all
+        # Get node representation from node GCN
+        # same node GCN = same weights for all
         x1 = self.gcn_node(feats, adj1)
         x2 = self.gcn_node(feats, adj2)
         x3 = self.gcn_node(feats, adj3)
         x4 = self.gcn_node(feats, adj4)
         x5 = self.gcn_node(feats, adj5)
        
-        # Adding GAP layer
+        # Adding GAP layer to get graph representation
         x1 = torch.sum(x1,1) # -> [batch, 128] graph representation summing all nodes
         x2 = torch.sum(x2,1)
         x3 = torch.sum(x3,1)
         x4 = torch.sum(x4,1)
         x5 = torch.sum(x5,1)
 
-        # concatenating features from all graphs
+        # Concatenating features from all graphs
+        # into one graph feature
         x = torch.cat((x1,x2,x3,x4,x5), 1)
 
-        # GAP to output layer (logits)
-        x = self.out(x) # -> [batch, 2] class of the graph
-        return(x)
+        # Fully connected layer from GAP to output layer
+        logits = self.out(x) # -> [batch, 2] class of the graph
+        return(logits)
 
 
 
