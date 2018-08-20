@@ -1,11 +1,12 @@
 import numpy as np
 import torch
+from sklearn.base import BaseEstimator, ClassifierMixin
 
-from siamese_gcn.model import GraphConvNetwork
+from siamese_gcn.model import GraphClassificationNet
 from siamese_gcn.train_utils import training_loop, training_step, val_step
 from siamese_gcn.data_utils import ToTorchDataset, build_onegraph_A, data_to_matrices
 
-from sklearn.base import BaseEstimator, ClassifierMixin
+
 
 """ This file defines a wrapper class for the GCN. 
 This is necessary in order to use this network just as it was 
@@ -18,7 +19,7 @@ class GCN_estimator_wrapper(BaseEstimator, ClassifierMixin):
                 h1=None, h2=None, out=None, in_feat=90, \
                 batch_size=32, lr=0.001, nsteps=1000, \
                 reset=False):
-        """ Init the model from GraphConvNetwork object.
+        """ Init the model from GraphClassificationNet object.
         Args:
             checkpoint_dir(str): name of the checkpoint directory for the run.
             logger(logger): logger object to print the results to.
@@ -32,7 +33,7 @@ class GCN_estimator_wrapper(BaseEstimator, ClassifierMixin):
             reset(bool):  whether to reset the network each time fit is called.
                           Set to true in cross-validation setting.
         """
-        self.gcn = GraphConvNetwork(90, h1, h2, out)
+        self.gcn = GraphClassificationNet(90, h1, h2, out)
         self.batch_size = batch_size
         self.lr = lr
         self.nsteps = nsteps
@@ -58,7 +59,7 @@ class GCN_estimator_wrapper(BaseEstimator, ClassifierMixin):
             Y_val([nval]): corresponding labels 
         """
         if self.reset:
-            self.gcn = GraphConvNetwork(90, self.h1, self.h2, self.out)
+            self.gcn = GraphClassificationNet(90, self.h1, self.h2, self.out)
         training_loop(self.gcn, X_train, Y_train, \
                         self.batch_size, self.lr, \
                         self.logger, self.checkpoint_dir, filename, \
