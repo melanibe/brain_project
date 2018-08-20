@@ -8,22 +8,34 @@ from siamese_gcn.data_utils import ToTorchDataset, build_onegraph_A, data_to_mat
 from sklearn.base import BaseEstimator, ClassifierMixin
 
 class GCN_estimator_wrapper(BaseEstimator, ClassifierMixin):
-    """ this class wraps also the other methods into a estimator class
-    thanks to that i can use my gcn as any sklearn estimator
+    """ Wrapper for the Graph Convoluational network.
+    Necessary in order to use this network just as it was 
+    any sklearn estimator in the (custom) cross validation.
     """
-    def __init__(self, checkpoint_file, logger, \
+    def __init__(self, checkpoint_dir, logger, \
                 h1=None, h2=None, out=None, in_feat=90, \
                 batch_size=32, lr=0.001, nsteps=1000, \
                 reset = False):
-        """ init the model with all the model and training parameters
+        """ Init the model from GraphConvNetwork object.
+        
         Args:
-            TO DO
+            checkpoint_dir(str): name of the checkpoint directory for the run.
+            logger(logger): logger object to print the results to.
+            h1: dimension of the first hidden layer
+            h2: dimension of the second hidden layer
+            out: dimension of the node features
+            in_feat: dimension of the input features i.e. number of nodes in the graph
+            batch_size: batch_size
+            lr(float): learning rate for the optimizer 
+            nsteps: number of training steps to apply
+            reset(bool): whether to reset the network each time fit is called.
+                        Set to true in cross-validation setting.
         """
         self.gcn = GraphConvNetwork(90, h1, h2, out)
         self.batch_size = batch_size
         self.lr = lr
         self.nsteps = nsteps
-        self.checkpoint_file = checkpoint_file
+        self.checkpoint_dir = checkpoint_dir
         self.logger = logger
         self.h1 = h1
         self.h2 = h2
@@ -38,7 +50,7 @@ class GCN_estimator_wrapper(BaseEstimator, ClassifierMixin):
             self.gcn = GraphConvNetwork(90, self.h1, self.h2, self.out)
         training_loop(self.gcn, X_train, Y_train, \
                         self.batch_size, self.lr, \
-                        self.logger, self.checkpoint_file, filename, \
+                        self.logger, self.checkpoint_dir, filename, \
                         X_val, Y_val, nsteps=self.nsteps)
     
     def predict(self, X_test):
