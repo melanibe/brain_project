@@ -5,7 +5,7 @@ import numpy as np
 import time
 import pandas as pd
 
-""" File to build the feature matrices.
+""" File to use to build the feature matrices.
 """
 
 try: # for local run
@@ -19,6 +19,7 @@ except: # for cluster
 phases = {"REM_phasic":1, "REM_tonic":2,
             "S2_Kcomplex":3,"S2_plain":4,
             "S2_spindle":5,"SWS_deep":6}
+
 subject_list = ['S01', 'S03', 'S04', 
                 'S05', 'S06', 'S07', 
                 'S08', 'S10', 'S11', 'S12']
@@ -76,12 +77,12 @@ def transform_X_std(X):
     Returns:
         X_aggregated: aggregated matrix [nobs, 4095*5]
     """
-    X_delta = np.mean(X[:,:,0:3], axis=2) #1 to 3 Hz
+    X_delta = np.mean(X[:,:,0:3], axis=2) # 1 to 3 Hz
     print(np.shape(X_delta))
-    X_theta = np.mean(X[:,:,3:7], axis=2) #4 to 7 Hz
-    X_alpha = np.mean(X[:,:,7:13], axis=2) #8-13 Hz
-    X_beta = np.mean(X[:,:,13:30], axis=2) #14-30 Hz
-    X_gamma = np.mean(X[:,:,30:], axis=2) #>30 Hz
+    X_theta = np.mean(X[:,:,3:7], axis=2) # 4 to 7 Hz
+    X_alpha = np.mean(X[:,:,7:13], axis=2) # 8-13 Hz
+    X_beta = np.mean(X[:,:,13:30], axis=2) # 14-30 Hz
+    X_gamma = np.mean(X[:,:,30:], axis=2) # >30 Hz
     print(np.shape(X_gamma))
     X_aggregated = np.concatenate((X_delta, X_theta, X_alpha, X_beta, X_gamma), axis =1)
     print(np.shape(X_aggregated))
@@ -104,7 +105,7 @@ def transform_X_one(X):
     return (X_one)    
 
 
-# for testing
+#---------------------- build the necessary matrices ----------------------#
 if __name__=='__main__':
     # creating the sub-directories to save the matrices if necessary
     dir = cwd+'/matrices/std/'
@@ -119,6 +120,7 @@ if __name__=='__main__':
     if not os.path.exists(dir):
         os.makedirs(dir)
         print('Created '+  dir)
+    # build and save the matrices
     for s in subject_list:
         print(s)
         X, Y = prepare_X([s])
