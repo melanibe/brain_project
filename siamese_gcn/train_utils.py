@@ -20,10 +20,12 @@ This is the main helper file for the fit/predict functions in the GCN_estimator 
 
 def training_step(gcn, data, optimizer, criterion):
     """ Defines a single training step for one batch of observations.
-    1. Computes the Ahat matrix for each frequency band, for each observation in the batch.
-    2. Gets the outputs from the network with this input
-    3. Apply the optimizer
-    4. Compute the training balanced accuracy over the batch
+    Note:
+        1. Computes the Ahat matrix for each frequency band, 
+           for each observation in the batch.
+        2. Gets the outputs from the network with this input
+        3. Apply the optimizer
+        4. Compute the training balanced accuracy over the batch
 
     Args:
         gcn(GraphConvNetwork): graph convolution network object 
@@ -83,9 +85,11 @@ def training_step(gcn, data, optimizer, criterion):
 
 def val_step(gcn, valloader, criterion, logger):
     """ Defines a single validation step for the validation set.
-    1. Computes the Ahat matrix for each frequency band, for each observation in the batch.
-    2. Gets the outputs from the network with this input
-    3. Compute the validation balanced accuracy and loss over the batch
+    Note:
+        1. Computes the Ahat matrix for each frequency band
+           for each observation in the batch.
+        2. Gets the outputs from the network with this input
+        3. Compute the validation balanced accuracy and loss over the batch
 
     Args:
         gcn(GraphConvNetwork): graph convolution network object 
@@ -144,20 +148,20 @@ def val_step(gcn, valloader, criterion, logger):
 def training_loop(gcn, X_train, Y_train, batch_size, lr, logger, checkpoint_dir, \
                  filename="", X_val=None, Y_val=None, nsteps=1000):
     """Function that runs the training loop.
-    
+
+    Note:
+        Assumes standard frequency band aggregation
+        preprocessing step for the feature matrix    
     Args:
         gcn(GraphConvNetwork): graph convolution network object 
-        X_train([ntrain, 5*nchannels]): training observations matrix
-                                        assumes standard freqeuncy band 
-                                        aggregation preprocessing step 
+        X_train([ntrain, 5*nchannels]): training feature matrix 
         Y_train([ntrain]): corresponding labels
         batch_size: batch_size
         lr(float): learning rate for the optimizer
         logger(logger): logger object to print the results to.
         checkpoint_dir(str): name of the checkpoint directory for the run.
-        filename(str): filename prefix to use for the plot (e.g. to distinguish between different CV)
-        X_val([nval, 5*nchannels]): validation observations, matrice of size [ntrain, 5*nchannels]
-                assumes standard freqeuncy band aggregation preprocessing step 
+        filename(str): filename prefix to use for the plots
+        X_val([nval, 5*nchannels]): validation feature matrix 
         Y_val([nval]): corresponding labels  
         nsteps: number of training steps to apply 
     """
