@@ -8,8 +8,15 @@ from sklearn.model_selection import cross_val_score
 cwd = os.getcwd()
 long_subject_list = ['S01', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S10', 'S11', 'S12']
 
+""" This file defines all the customized 
+cross validations used in the experiments.
+"""
+#---------------------- Upsampling Kfold ----------------------#
 class UpsampleStratifiedKFold:
-    """ custom cv generator for upsampling.
+    """ Generates stratified K-Fold splits with upsampling
+    to have balanced class observations in each split. 
+    Replicating the structure of the StratifiedKFold 
+    class in sklearn.
     """
     def __init__(self, n_splits=3):
         self.n_splits = n_splits
@@ -29,10 +36,30 @@ class UpsampleStratifiedKFold:
         return self.n_splits
 
 
-###### ACROSS CV #####
+#---------------------- ACROSS CV ----------------------#
 def AcrossSubjectCV(estimator, logger, subject_list=long_subject_list, mat = 'std', upsample=False):
-    """ Implements custom CV to calculate the across subject accuracy.
-    10-fold CV since we have 10 subjects.
+    """ Implements custom across subject CV.
+    Note:
+        Training on all the subjects except one. 
+        Testing on the hold-on subject.
+        nb_subject-fold cross validation.
+
+    Warning:
+        - Estimator has to be child BaseEstimator class
+        from sklearn.
+        - If you use GCN estimator the type of feature matrix
+        has to be standard frequency band aggregation i.e.
+        type std.
+        - Assumes that all the matrices are already prepared
+        per subject (see Readme)
+    
+    Args:
+        estimator: estimator to use 
+        logger: logger to print the results to.
+        subject_list: list of str with the subject names
+                      to include in the CV.
+        mat: type of feature matrix.
+        upsample: whether to use upsampling or not.
     """   
     roc_auc=[]
     accuracyCV = []
@@ -40,7 +67,9 @@ def AcrossSubjectCV(estimator, logger, subject_list=long_subject_list, mat = 'st
     conf_perc = []
     bal_acc = []
     for s in subject_list:
-        X_test, Y_test = np.load(cwd+'/matrices/{}/{}.npy'.format(mat, s)), np.load(cwd+'/matrices/{}_y.npy'.format(s))
+        X_test = np.load(cwd+'/matrices/{}/{}.npy'.format(mat, s))
+        Y_test = np.load(cwd+'/matrices/{}_y.npy'.format(s))
+        # reduce to 2 classes
         Y_test = [1 if ((y==1) or (y==2)) else 0 for y in Y_test]
         print("Preparing fold only {}".format(s))
         print("Preparing fold except {}".format(s))
@@ -60,8 +89,7 @@ def AcrossSubjectCV(estimator, logger, subject_list=long_subject_list, mat = 'st
         print(n)
         print(len(X_test))
         print(n+len(X_test))
-        if upsample:
-        # perform upsampling only on training fold
+        if upsample: # perform upsampling only on training fold
             neg_ix = np.where([Y_train[i]==0 for i in range(n)])[0]
             pos_ix = np.where([Y_train[i]==1 for i in range(n)])[0]
             assert(len(pos_ix)+len(neg_ix)==n)
@@ -71,10 +99,10 @@ def AcrossSubjectCV(estimator, logger, subject_list=long_subject_list, mat = 'st
         n = len(X_train)
         logger.info("REM/nonREM ratio current fold: {}".format(np.sum([Y_train[i]==1 for i in range(n)])/float(np.sum([Y_train[i]==0 for i in range(n)]))))
         print("Fit the estimator")
-        #try: #GCN fit takes X_val and Y_val in arguments but not the others
-        estimator.fit(X_train, Y_train, X_test, Y_test, "_across_testsubj_{}".format(s))
-        #except:
-         #   estimator.fit(X_train, Y_train)
+        try: # GCN fit takes X_val and Y_val in arguments but not the others
+            estimator.fit(X_train, Y_train, X_test, Y_test, "_across_testsubj_{}".format(s))
+        except:
+           estimator.fit(X_train, Y_train)
         print("Calculating the metrics")
         pred = estimator.predict(X_test)
         roc_auc.append(roc_auc_score(Y_test, estimator.predict_proba(X_test)[:,1]))
@@ -102,10 +130,33 @@ def AcrossSubjectCV(estimator, logger, subject_list=long_subject_list, mat = 'st
     return(results, metrics, confusion, conf_perc)
 
 
-
+#---------------------- WITHIN CV ----------------------#
 def WithinOneSubjectCV(estimator, logger, subject = ['S12','S10','S12','S05'], k=10, upsample=False, mat = 'std'):
-    """ Implements custom CV within one or more subject, 3-fold CV
-    """
+    """ Implements custom within subject CV.
+    Note:
+        Stratified Kfold on the set of observations 
+        from the selected subject.
+        Provide one single subject for within single subject CV.
+        Provide more subjects for wihtin mixed subject CV.
+
+    Warning:
+        - Estimator has to be child BaseEstimator class
+        from sklearn.
+        - If you use GCN estimator the type of feature matrix
+        has to be standard frequency band aggregation i.e.
+        type std.
+        - Assumes that all the matrices are already prepared
+        per subject (see Readme)
+    
+    Args:
+        estimator: estimator to use 
+        logger: logger to print the results to.
+        subject_list: list of str with the subject names
+                      to include in the CV.
+        k: number of fold to use
+        mat: type of feature matrix.
+        upsample: whether to use upsampling or not.
+    """ 
     roc_auc=[]
     accuracyCV = []
     confusion = []
@@ -133,7 +184,7 @@ def WithinOneSubjectCV(estimator, logger, subject = ['S12','S10','S12','S05'], k
         fold +=1
         X_train, X_test = [X[i] for i in train_index], [X[i] for i in test_index]
         Y_train, Y_test = [Y[i] for i in train_index], [Y[i] for i in test_index]
-        # check proportion
+        # check and log REM/nonREM proportion
         logger.info("REM/nonREM ratio current train fold: {}".format(np.sum([Y_train[i]==1 for i in range(len(X_train))])/float(np.sum([Y_train[i]==0 for i in range(len(X_train))]))))
         logger.info("REM/nonREM ratio current test fold: {}".format(np.sum([Y_test[i]==1 for i in range(len(X_test))])/float(np.sum([Y_test[i]==0 for i in range(len(X_test))]))))
         try: #GCN fit takes X_val and Y_val in arguments but not the others
