@@ -5,7 +5,7 @@ import numpy as np
 import time
 import pandas as pd
 
-""" File builds the feature matrices.
+""" File to build the feature matrices.
 """
 
 try: # for local run
@@ -16,11 +16,26 @@ except: # for cluster
     cwd = os.getcwd()
     data_folder = "/cluster/scratch/melanibe/"+'/DATA/'
 
-phases = {"REM_phasic":1,"REM_tonic":2,"S2_Kcomplex":3,"S2_plain":4,"S2_spindle":5,"SWS_deep":6}
-subject_list = ['S01', 'S03', 'S04', 'S05', 'S06', 'S07', 'S08', 'S10', 'S11', 'S12']
+phases = {"REM_phasic":1, "REM_tonic":2,
+            "S2_Kcomplex":3,"S2_plain":4,
+            "S2_spindle":5,"SWS_deep":6}
+subject_list = ['S01', 'S03', 'S04', 
+                'S05', 'S06', 'S07', 
+                'S08', 'S10', 'S11', 'S12']
+
+
 ################## LOADING DATA AND PREPARING THE MATRIX ##################
-def prepare_X(subject_list= subject_list): 
-    """ loads all the original matlab coherence matrices in one big matrix of shape [10081, 4095, 50].
+def prepare_X(subject_list=subject_list): 
+    """ Loads and merges the original MatLab files
+        in one single numpy array of shape [nobs, 4095, 50].
+
+    Args:
+        subject_list: the list of subjects to load.
+                      Defaults to all subjects.
+    
+    Returns:
+        X: feature matrix of shape [nobs, 4095, 50]
+        Y: label array of shape [nobs]
     """
     X = []
     Y = []
@@ -50,8 +65,16 @@ def prepare_X(subject_list= subject_list):
     return(X,Y)
 
 def transform_X_std(X):
-    """ Build the matrix that aggregates the values per standard frequency band 
-    i.e. Std matrix of the report.
+    """ Standard frequency band aggregation.
+    
+    Transforms the original feature matrix by aggregating
+    the values per standard frequency band i.e. 'std' matrix of the report.
+
+    Args:
+        X: original feature matrix built with prepare_X
+    
+    Returns:
+        X_aggregated: aggregated matrix [nobs, 4095*5]
     """
     X_delta = np.mean(X[:,:,0:3], axis=2) #1 to 3 Hz
     print(np.shape(X_delta))
@@ -65,8 +88,16 @@ def transform_X_std(X):
     return (X_aggregated)
 
 def transform_X_one(X):
-    """ Prepare the matrix that aggregates the values over all frequencies.
-    i.e. One matrix in the report.
+    """ One frequency band aggregation.
+    
+    Transforms the original feature matrix by averaging
+    the values over all frequency bands i.e. 'one' matrix of the report.
+
+    Args:
+        X: original feature matrix built with prepare_X
+    
+    Returns:
+        X_one: aggregated matrix [nobs, 4095]
     """
     X_one = np.mean(X[:,:,:], axis=2)
     print(np.shape(X_one))
