@@ -4,7 +4,7 @@ import re
 import numpy as np
 import time
 import pandas as pd
-
+import networkx as nx
 """ File to use to build the feature matrices.
 """
 
@@ -77,13 +77,12 @@ def transform_X_std(X):
     Returns:
         X_aggregated: aggregated matrix [nobs, 4095*5]
     """
-    X_delta = np.mean(X[:,:,0:3], axis=2) # 1 to 3 Hz
+    X_delta = np.mean(X[:,:,0:4], axis=2) # 1 to <4 Hz
     print(np.shape(X_delta))
-    X_theta = np.mean(X[:,:,3:7], axis=2) # 4 to 7 Hz
-    X_alpha = np.mean(X[:,:,7:13], axis=2) # 8-13 Hz
-    X_beta = np.mean(X[:,:,13:30], axis=2) # 14-30 Hz
-    X_gamma = np.mean(X[:,:,30:], axis=2) # >30 Hz
-    print(np.shape(X_gamma))
+    X_theta = np.mean(X[:,:,4:8], axis=2) # 4 to <8 Hz
+    X_alpha = np.mean(X[:,:,8:13], axis=2) # 8-<13 Hz
+    X_beta = np.mean(X[:,:,13:30], axis=2) # 13-<30 Hz
+    X_gamma = np.mean(X[:,:,30:], axis=2) # >=30 Hz
     X_aggregated = np.concatenate((X_delta, X_theta, X_alpha, X_beta, X_gamma), axis =1)
     print(np.shape(X_aggregated))
     return (X_aggregated)
@@ -120,14 +119,18 @@ if __name__=='__main__':
     if not os.path.exists(dir):
         os.makedirs(dir)
         print('Created '+  dir)
+    dir = cwd+'/matrices/y/'
+    if not os.path.exists(dir):
+        os.makedirs(dir)
+        print('Created '+  dir)
     # build and save the matrices
     for s in subject_list:
         print(s)
         X, Y = prepare_X([s])
-        Xstd = transform_X_std(X)
         Xone = transform_X_one(X)
+        Xstd = transform_X_std(X)
         print(np.shape(Xstd))
         np.save(cwd+'/matrices/all/{}'.format(s), X)
         np.save(cwd+'/matrices/std/{}'.format(s), Xstd)
         np.save(cwd+'/matrices/one/{}'.format(s), Xone)
-        np.save(cwd+'/matrices/{}_y'.format(s), Y)
+        np.save(cwd+'/matrices/y/{}'.format(s), Y)
