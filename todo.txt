@@ -1,8 +1,0 @@
-TO DO LIST
-* check the thing with balanced random forest
-* find the best training step (plots seems to indicate that 1000 steps is really overfitting) try to add more dropout or weight decay to see the impact
-
-Later
-* See what can be done with the feature importance plotting like in sex classification or comp bio paper
-* Plots ?
-    
