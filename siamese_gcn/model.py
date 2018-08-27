@@ -7,6 +7,7 @@ import torch.nn as nn
 from torch.nn.parameter import Parameter
 from torch.nn.modules.module import Module
 
+
 """
 File defining the layers and the graph class network.
 """
