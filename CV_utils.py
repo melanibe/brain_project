@@ -64,6 +64,14 @@ def AcrossSubjectCV(estimator, logger, subject_list,
                       to include in the CV.
         mat: type of feature matrix.
         upsample: whether to use upsampling or not.
+
+    Returns:
+        results: dataframe containing the 
+                 results averaged over all folds
+        metrics: dataframe containing the
+                 results per fold
+        confusion: a list of confusion matrix for each fold
+        conf_perc: a list of percentage confusion matrix for each fold
     """
     roc_auc = []
     accuracyCV = []
@@ -181,6 +189,14 @@ def WithinOneSubjectCV(estimator, logger, subject,
         k: number of fold to use
         mat: type of feature matrix.
         upsample: whether to use upsampling or not.
+
+    Returns:
+         results: dataframe containing the 
+                 results averaged over all folds
+        metrics: dataframe containing the
+                 results per fold
+        confusion: a list of confusion matrix for each fold
+        conf_perc: a list of percentage confusion matrix for each fold   
     """
     roc_auc = []
     accuracyCV = []
