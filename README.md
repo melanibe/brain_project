@@ -61,7 +61,10 @@ The file `CV_utils.py`  defines all the customized cross validations procedure d
 
 * Class `UpsampleStratifiedKFold` customizes the standard `StratifiedKFold` class available in sklearn in order to add the possiblity to perfrom upsampling on each training fold. It implements the procedure detailed in the report.
 
-* Funcion `AcrossSubjectCV` runs the across-subject cross-validation experiment of the report. It splits the dataset such that one subject is one fold. Then it runs the cross-validation saving the results to a logger file. It also returns         results (a dataframe containing the results averaged over all folds), metrics (a dataframe containing the results per fold), confusion (a list of confusion matrix for each fold), conf_perc (a list of percentage confusion matrix for each fold).
+Both custom cross-validation function take the same input arguments. BLABLA to complete.
+* Function `AcrossSubjectCV` runs the across-subject cross-validation experiment of the report. It splits the dataset such that one subject is one fold. Then it runs the cross-validation saving the results to a logger file. It also returns         results (a dataframe containing the results averaged over all folds), metrics (a dataframe containing the results per fold), confusion (a list of confusion matrix for each fold), conf_perc (a list of percentage confusion matrix for each fold).
+
+* Function `WithinOneSubjectCV` implements custom within subject CV. Returns the same type of arguments as the previous function. Takes a list of subject as arguments: if one subject is specified it performs within-one-single subject cross validation (first setting in the report). If a list of all the subjects is passed to the function it performs within-all-subject cross-validation. 
 
 
 ### Running the experiments
