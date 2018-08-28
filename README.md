@@ -108,4 +108,9 @@ Run `classification_exp.py` with the following console arguments (optional):
 * One numpy array `within_mixed_est` with est the estimator name. Contains the list of balanced accuracy per fold for the within-all subject cross-validation.
 * One numpy array `across_mixed_est` with est the estimator name. Contains the list of balanced accuracy per fold for the across-subject cross-validation.
 These numpy array are used to create the final plots in the report (see iPython notebook).
-If `gcn` is included in the estimator list:
+If `gcn` is included in the estimator list it also contains the train/validation loss and balanced accuracy plots for each fold for each cross-validation setting. 
+Example of file names: 
+    - `_across_testsubj_S04_bal_acc.png`corresponds the balanced accuracy evolution for across-subject cross-validation where the test fold was subject 4. 
+    - `_within_8_subjects_fold_3_loss.png` the training and validation loss plot for fold 3 in within-all-subjects cross-validation.
+    - `_within_subj_S05_fold_2_bal_acc.png` balanced accuracy evolution for training and validation set for fold 2 of the within-subject-S05 cross-validation.
+
