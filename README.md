@@ -27,7 +27,8 @@ Running the file will trigger the creation and saving of:
  * the one frequency band matrix per subject. Each subject matrix will be saved in the `/matrices/one/SXX.npy` folder, where XX is the number of the subject.
  * the label array per subject. Each label array will be saved in the `/matrices/y/SXX.npy` folder, where XX is the number of the subject.
  
-**Please run this file prior to running any other file of this project as the other files assume that the data is saved in a npy array following the folder structure described above.**
+**Please create a matrices folder and a runs folder in this repository folder prior to running anything. 
+Please run this file prior to running any other file of this project as the other files assume that the data is saved in a npy array following the folder structure described above.**
 
 ## Quick start guide to run the experiments of the report
 The `classification_exp.py` is the main file to run the experiments described in the report. In the initialization phase, it creates a subfolder in the `runs` directory where the logger and the eventual plots produced during the run of the file are saved. The estimators are then initialized. Finally all three cross-validation settings (i.e. within-one-single subject, within-all subjects CV and across-subjects CV) are run. All files used to build the experiments are explained in more details in the next sections of this Readme.
