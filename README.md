@@ -100,4 +100,12 @@ Run `classification_exp.py` with the following console arguments (optional):
  * To run the experiments just with the Graph neural network using a customized architecture and 300 training steps:
  `python classification_exp.py -est gcn -h1 32 -h2 64 -out 128 -s 300`
  
- 
+ Content of the run subfolder:
+ Every time the file is run it creates a timestamped (e.g. `24Aug18_165932`) subfolder in the `runs` folder. All the results of the cross-validations are saved in this subfolder. This subfolder contains:
+ * a `std_long.log` file (where std is the type of matrix used) where all the messages are saved: all the results per fold, all the monitoring messages during the Graph Classification Network training (i.e. validation and training loss every 5 training steps). 
+* a `std_short.log` file which saves only the results (i.e. the metrics) in each cross-validation run. More convenient to analyze the results without having to go through all training information.
+* Several numpy array named in the pattern `within_SXX_est` where XX is the subject number and est the estimator name. These array correspond to the list of balanced accuracy per fold for each within-one-single subject cross-validation.
+* One numpy array `within_mixed_est` with est the estimator name. Contains the list of balanced accuracy per fold for the within-all subject cross-validation.
+* One numpy array `across_mixed_est` with est the estimator name. Contains the list of balanced accuracy per fold for the across-subject cross-validation.
+These numpy array are used to create the final plots in the report (see iPython notebook).
+If `gcn` is included in the estimator list:
