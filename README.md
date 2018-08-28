@@ -30,7 +30,7 @@ The `siamese_gcn` contains all the files necessary to build and train the grah c
 One layer class:
 * Class `GraphConvLayer` defines the graph convolutional layer. The implementation of this class is taken from https://github.com/tkipf/pygcn.
 
-Two network definition class. Each of these classes contains one init method and one forward method.
+Two network definition class. Each of these classes contains one `init` method and one `forward` method.
 * Class `NodeGCN` defines the node graph convolution network to derive the nodes features.
 * Class `GraphClassificationNet` defines the whole graph classification network. Combines the node classification, sum pooling, fully connected layer.
 
@@ -53,7 +53,7 @@ the fit/predict functions in the `GCN_estimator.py` file.
 ### GCN_estimator.py
 This file defines a wrapper class for the GCN. This is necessary in order to use this network just as
 it was any sklearn estimator in the (custom) cross validation.
-It defines the `GCN_estimator_wrapper` class a child of the `BaseEstimator` and `ClassifierMixin` classes. It contains one init method, one fit method (i.e. training method, calls the training loop function defined in `train_utils.py`), one predict method (to predict labels on a test set after having fitted i.e. trained the estimator), one predict_proba method (to predict probabilities associated to each class on a test set after having fitted i.e. trained the estimator).
+It defines the `GCN_estimator_wrapper` class a child of the `BaseEstimator` and `ClassifierMixin` classes. It contains one `init` method, one `fit` method (i.e. training method, calls the training loop function defined in `train_utils.py`), one `predict` method (to predict labels on a test set after having fitted i.e. trained the estimator), one `predict_proba` method (to predict probabilities associated to each class on a test set after having fitted i.e. trained the estimator).
 
 ## Experiments from the report
 ### Cross-validation utils
@@ -64,16 +64,16 @@ The file `CV_utils.py`  defines all the customized cross validations procedure d
 Both custom cross-validation functions take the same input arguments.
 * Function `AcrossSubjectCV` runs the across-subject cross-validation experiment of the report. It splits the dataset such that one subject is one fold. Then it runs the cross-validation saving the results to a logger file. 
     - Args:
-        * estimator: estimator object (child of BaseEstimator) to use
-        * logger: logger object to print the results to.
-        * subject_list: list of str with the subject names to include in the CV. For standard across-subject CV use the list of all the subjects.
-        * mat: type of aggregation for the feature matrix preprocessing. Can choose between 'std' (i.e. standard frequency band aggregation) or 'one' (i.e. single frequency band aggregation). ATTENTION: if your estimator is GCN_estimator you can only use 'std' as feature matrix. You can not use the original matrices without processing (saved in 'all' folder) as they are saved as a 3-dimensional array [nobs, 4095,50], if you want to run classification experiments on the original matrices you have to reshape them.  
-        * upsample: whether to use upsampling or not.
+        * `estimator`: estimator object (child of BaseEstimator) to use
+        * `logger`: logger object to print the results to.
+        * `subject_list`: list of str with the subject names to include in the CV. For standard across-subject CV use the list of all the subjects.
+        * `mat`: type of aggregation for the feature matrix preprocessing. Can choose between 'std' (i.e. standard frequency band aggregation) or 'one' (i.e. single frequency band aggregation). ATTENTION: if your estimator is GCN_estimator you can only use 'std' as feature matrix. You can not use the original matrices without processing (saved in 'all' folder) as they are saved as a 3-dimensional array [nobs, 4095,50], if you want to run classification experiments on the original matrices you have to reshape them.  
+        * `upsample`: whether to use upsampling or not.
      - Returns:
-       * results: dataframe containing the results averaged over all folds
-       * metrics: dataframe containing the results per fold
-       * confusion: list of confusion matrix per fold
-       * conf_perc: list of percentage confusion matrix per fold
+       * `results`: dataframe containing the results averaged over all folds
+       * `metrics`: dataframe containing the results per fold
+       * `confusion`: list of confusion matrix per fold
+       * `conf_perc`: list of percentage confusion matrix per fold
     
 * Function `WithinOneSubjectCV` implements custom within subject CV. Returns the same type of arguments as the previous function. It takes the same arguments as the previous function. In particular, it takes a list of subject as arguments: if one subject is specified it performs within-one-single subject cross validation (first setting in the report). If a list of all the subjects is passed to the function it performs within-all-subject cross-validation. 
 
