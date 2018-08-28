@@ -117,4 +117,6 @@ Both custom cross-validation functions take the same input arguments.
     
 * Function `WithinOneSubjectCV` implements custom within subject CV. Returns the same type of arguments as the previous function. It takes the same arguments as the previous function. In particular, it takes a list of subject as arguments: if one subject is specified it performs within-one-single subject cross validation (first setting in the report). If a list of all the subjects is passed to the function it performs within-all-subject cross-validation. 
 
+## Plots of the report
+The notebook `plot_results_report.ipynb` is the notebook used to create the results plots and latex table of the report. Just modify the run folder names in the second cell of the notebook if you wish to create new results plots with other experiment parameters. 
 
