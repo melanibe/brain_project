@@ -1,5 +1,8 @@
 # Analyzing brain connectivity during sleep 
-### Semester project
+## Mélanie Bernhardt
+#### Semester project - Research in Data Science Course
+#### ETH Zurich - Machine Learning Institute
+#### Supervisor: J. Buhmann, Advisor: D.Miladinovic 
 
 This repository contains the code associated to the `report.pdf` of the project. It contains all necessary files to build the numpy feature matrix from the original matlab files, to construct and train the neural network and to run the final experiments for which to results are presented in the report.
 
