@@ -1,12 +1,18 @@
 # Analyzing brain connectivity during sleep 
 #### Mélanie Bernhardt
 #### Semester project - Research in Data Science Course
+#### Supervisor: J. Buhmann, Advisor: D.Miladinovic
 #### ETH Zurich - Machine Learning Institute
-#### Supervisor: J. Buhmann, Advisor: D.Miladinovic 
 
-This repository contains the code associated to the `report.pdf` of the project. It contains all necessary files to build the numpy feature matrix from the original matlab files, to construct and train the neural network and to run the final experiments for which to results are presented in the report.
+In this semester project, we show how graph neural models can be applied on multi-frequency brain connectivity data derived from MEG recordings in the context of sleep stage classification. 
 
-This readme presents the files and the functions they contain. Every function and its arguments is documented precisely in the code.
+This repository contains the code associated to this project. It contains all the necessary files to:
+ 1. Build the numpy feature matrix from the original matlab files
+ 2. Construct and train the graph classification neural network presented in the report.
+ 3. Run the experiments described in the report.
+
+This readme details the content of the files of this repo and the functions they contain.
+Every function and its arguments is also documented precisely in the code.
 
 ## Build feature matrix from original matlab files 
 Use the file `build_features.py` to compute and save the features matrix needed for the experiments. 
