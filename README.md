@@ -98,6 +98,7 @@ it was any sklearn estimator in the (custom) cross validation.
 It defines the `GCN_estimator_wrapper` class a child of the `BaseEstimator` and `ClassifierMixin` classes. It contains one `init` method, one `fit` method (i.e. training method, calls the training loop function defined in `train_utils.py`), one `predict` method (to predict labels on a test set after having fitted i.e. trained the estimator), one `predict_proba` method (to predict probabilities associated to each class on a test set after having fitted i.e. trained the estimator).
 
 ## Building the custom cross-validation procedures from the report
+### CV_utils.py
 The file `CV_utils.py`  defines all the customized cross validations procedure decribed in the experiments section of the report.
 
 * Class `UpsampleStratifiedKFold` customizes the standard `StratifiedKFold` class available in sklearn in order to add the possiblity to perfrom upsampling on each training fold. It implements the procedure detailed in the report. It contains a `init` method a `get_n_splits` method (gets the number of splits) and a `split` method the split method yields a index iterator with train and test indices for each fold in the CV (cf. `StratifiedKFold` class of sklearn package).
