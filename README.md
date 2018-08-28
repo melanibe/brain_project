@@ -15,7 +15,7 @@ This readme details the content of the files of this repo and the functions they
 Every function and its arguments is also documented precisely in the code.
 
 ## Build feature matrices from original matlab files 
-Use the file `build_features.py` to compute and save the features matrix needed for the experiments. 
+Use the file `build_features.py` to compute and save the features matrices needed for the experiments. 
 It contains the following functions:
 * `prepare_X` loads and merges the original MatLab files in one single numpy array of shape [nobs, 4095, 50]. It takes a list of subject as input argument to only load data for a subset of subjects if needed. 
 * `transform_X_std` performs the standard frequency band aggregation preprocessing step. It takes one matrix of size [nobs, 4095, 50] as input.
