@@ -30,14 +30,14 @@ Running the file will trigger the creation and saving of:
 **Please run this file prior to running any other file of this project as the other files assume that the data is saved in a npy array following the folder structure described above.**
 
 ## Quick start guide to run the experiments of the report
-The `classification_exp.py` is the main file to run the experiments described in the report. In the initialization phase, it creates a subfolder in the `runs` directory where the logger and the eventual plots produce during the run of the file are saved. The estimators are then initialized. Finally all three cross-validation settings (i.e. within-one-single subject, within-all subjects CV and across-subjects CV) are run. All files used to build the experiments are explained in the next sections of this readme.
+The `classification_exp.py` is the main file to run the experiments described in the report. In the initialization phase, it creates a subfolder in the `runs` directory where the logger and the eventual plots produced during the run of the file are saved. The estimators are then initialized. Finally all three cross-validation settings (i.e. within-one-single subject, within-all subjects CV and across-subjects CV) are run. All files used to build the experiments are explained in more details in the next sections of this Readme.
 
 #### Console options
 Several console arguments are available to change the parameters of the experiments without having to modify the code. 
 Run `classification_exp.py` with the following console arguments (optional):
  - `-est` a list of estimators names. Choose among 'uniform' (dummy classifier, random prediction between class 1 and 0), 'constant' (dummy classifier always predicts class 0), 'gcn' (GCN_estimator, the model proposed in the report), 'pcasvm' (PCA+SVM pipeline described as the first baseline in the report), 'rf' (SelectPercentile+RandomForestClassifier pipeline, second baseline in the report). If not specified the file uses ['gcn', 'rf', 'pcasvm']
  - `-up` whether to use upsampling or not. If not specified the file uses 'False'.
- - `-t` type of frequency band aggregation to use. Use obligatory 'std' in 'gcn' is in your estimator list. Otherwise can also use 'one' aggregation (see note in previous section).
+ - `-t` type of frequency band aggregation to use. It is mandatory to use 'std' if 'gcn' is in your estimators' list. Otherwise one can also use 'one' aggregation (see note in cross-validation section below).
  - `-j` number of jobs to use for the sklearn baselines.
  Specific options for `gcn` estimator:
  - `-s` number of training steps to use
@@ -47,13 +47,12 @@ Run `classification_exp.py` with the following console arguments (optional):
  
  Some examples of commands:
  * To run all the experiments of the report:
-  - First `python classification_exp.py` without any parameters runs the experiments for GCN, RF without upsampling and PCA SVM without upsampling.
+  - First `python classification_exp.py` without any parameters runs the experiments for GCN (with the parameters chosen in the report), RF without upsampling and PCA SVM without upsampling.
   - Second `python classification_exp.py -est rf pcasvm -up True` to run the experiments for the baselines with upsampling. 
- * To run the experiments just with the Graph neural network using a customized architecture and 300 training steps:
+ * Another example that would run the experiments just with the Graph neural network using a customized architecture and 300 training steps:
  `python classification_exp.py -est gcn -h1 32 -h2 64 -out 128 -s 300`
  #### Output folder
- Content of the run subfolder:
- Every time the file is run it creates a timestamped (e.g. `24Aug18_165932`) subfolder in the `runs` folder. All the results of the cross-validations are saved in this subfolder. This subfolder contains:
+ Every time the `classification_exp.py` file is run it creates a timestamped (e.g. `24Aug18_165932`) subfolder stored in the `runs` folder. All the results of the cross-validations are saved in this subfolder. This subfolder contains:
  * a `std_long.log` file (where std is the type of matrix used) where all the messages are saved: all the results per fold, all the monitoring messages during the Graph Classification Network training (i.e. validation and training loss every 5 training steps). 
 * a `std_short.log` file which saves only the results (i.e. the metrics) in each cross-validation run. More convenient to analyze the results without having to go through all training information.
 * Several numpy array named in the pattern `within_SXX_est` where XX is the subject number and est the estimator name. These array correspond to the list of balanced accuracy per fold for each within-one-single subject cross-validation.
