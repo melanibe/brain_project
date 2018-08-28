@@ -14,7 +14,7 @@ This repository contains the code associated to this project. It contains all th
 This readme details the content of the files of this repo and the functions they contain.
 Every function and its arguments is also documented precisely in the code.
 
-## Build feature matrix from original matlab files 
+## Build feature matrices from original matlab files 
 Use the file `build_features.py` to compute and save the features matrix needed for the experiments. 
 It contains the following functions:
 * `prepare_X` loads and merges the original MatLab files in one single numpy array of shape [nobs, 4095, 50]. It takes a list of subject as input argument to only load data for a subset of subjects if needed. 
