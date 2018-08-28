@@ -1,5 +1,5 @@
 # Analyzing brain connectivity during sleep 
-## Mélanie Bernhardt
+#### Mélanie Bernhardt
 #### Semester project - Research in Data Science Course
 #### ETH Zurich - Machine Learning Institute
 #### Supervisor: J. Buhmann, Advisor: D.Miladinovic 
