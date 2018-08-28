@@ -48,9 +48,9 @@ args = parser.parse_args()
 mat = args.type if args.type else 'std'
 upsample = args.upsample if args.upsample else False
 njobs = args.njobs if args.njobs else 3
-nsteps = args.nsteps if args.nsteps else 300
-h1 = args.h1 if args.h1 else 32
-h2 = args.h2 if args.h2 else 16
+nsteps = args.nsteps if args.nsteps else 1500
+h1 = args.h1 if args.h1 else 128
+h2 = args.h2 if args.h2 else 32
 out = args.out if args.out else 16
 
 try:  # for local run
