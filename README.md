@@ -22,10 +22,10 @@ It contains the following functions:
 * `transform_X_one`performs the 'one' frequency band aggregation preprocessing step.
 
 Running the file will trigger the creation and saving of:
- * the full original feature matrix of shape [nobs, 4095, 50] per subject. Each subject matrix will be saved in the `/matrices/all/` folder, the name of the array is the name of the subject.
- * the standard frequency band matrix per subject. Each subject matrix will be saved in the `/matrices/std/` folder, the name of the array is the name of the subject.
- * the one frequency band matrix per subject. Each subject matrix will be saved in the `/matrices/one/` folder, the name of the array is the name of the subject.
- * the label array per subject. Each label array will be saved in the `/matrices/y/` folder, the name of the array is the name of the subject.
+ * the full original feature matrix of shape [nobs, 4095, 50] per subject. Each subject matrix will be saved in the `/matrices/all/SXX.npy` folder, where XX is the number of the subject.
+ * the standard frequency band matrix per subject. Each subject matrix will be saved in the `/matrices/std/SXX.npy` folder, where XX is the number of the subject.
+ * the one frequency band matrix per subject. Each subject matrix will be saved in the `/matrices/one/SXX.npy` folder, where XX is the number of the subject.
+ * the label array per subject. Each label array will be saved in the `/matrices/y/SXX.npy` folder, where XX is the number of the subject.
  
 **Please run this file prior to running any other file of this project as the other file assume that the data is saved in a npy array following the folder structure described above.**
 
