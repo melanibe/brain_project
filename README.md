@@ -59,12 +59,23 @@ It defines the `GCN_estimator_wrapper` class a child of the `BaseEstimator` and 
 ### Cross-validation utils
 The file `CV_utils.py`  defines all the customized cross validations procedure decribed in the experiments section of the report.
 
-* Class `UpsampleStratifiedKFold` customizes the standard `StratifiedKFold` class available in sklearn in order to add the possiblity to perfrom upsampling on each training fold. It implements the procedure detailed in the report.
+* Class `UpsampleStratifiedKFold` customizes the standard `StratifiedKFold` class available in sklearn in order to add the possiblity to perfrom upsampling on each training fold. It implements the procedure detailed in the report. It contains a `init` method a `get_n_splits` method (gets the number of splits) and a `split` method the split method yields a index iterator with train and test indices for each fold in the CV (cf. `StratifiedKFold` class of sklearn package).
 
-Both custom cross-validation function take the same input arguments. BLABLA to complete.
-* Function `AcrossSubjectCV` runs the across-subject cross-validation experiment of the report. It splits the dataset such that one subject is one fold. Then it runs the cross-validation saving the results to a logger file. It also returns         results (a dataframe containing the results averaged over all folds), metrics (a dataframe containing the results per fold), confusion (a list of confusion matrix for each fold), conf_perc (a list of percentage confusion matrix for each fold).
-
-* Function `WithinOneSubjectCV` implements custom within subject CV. Returns the same type of arguments as the previous function. Takes a list of subject as arguments: if one subject is specified it performs within-one-single subject cross validation (first setting in the report). If a list of all the subjects is passed to the function it performs within-all-subject cross-validation. 
+Both custom cross-validation functions take the same input arguments.
+* Function `AcrossSubjectCV` runs the across-subject cross-validation experiment of the report. It splits the dataset such that one subject is one fold. Then it runs the cross-validation saving the results to a logger file. 
+    - Args:
+        * estimator: estimator object (child of BaseEstimator) to use
+        * logger: logger object to print the results to.
+        * subject_list: list of str with the subject names to include in the CV. For standard across-subject CV use the list of all the subjects.
+        * mat: type of aggregation for the feature matrix preprocessing. Can choose between 'std' (i.e. standard frequency band aggregation) or 'one' (i.e. single frequency band aggregation). ATTENTION: if your estimator is GCN_estimator you can only use 'std' as feature matrix. You can not use the original matrices without processing (saved in 'all' folder) as they are saved as a 3-dimensional array [nobs, 4095,50], if you want to run classification experiments on the original matrices you have to reshape them.  
+        * upsample: whether to use upsampling or not.
+     - Returns:
+       * results: dataframe containing the results averaged over all folds
+       * metrics: dataframe containing the results per fold
+       * confusion: list of confusion matrix per fold
+       * conf_perc: list of percentage confusion matrix per fold
+    
+* Function `WithinOneSubjectCV` implements custom within subject CV. Returns the same type of arguments as the previous function. It takes the same arguments as the previous function. In particular, it takes a list of subject as arguments: if one subject is specified it performs within-one-single subject cross validation (first setting in the report). If a list of all the subjects is passed to the function it performs within-all-subject cross-validation. 
 
 
 ### Running the experiments
