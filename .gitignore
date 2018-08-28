@@ -13,3 +13,5 @@ siamese_gcn/runs/
 DEPRECATED/
 reports/
 runs/
+.ipynb_checkpoints/plot_results_report-checkpoint.ipynb
+brain_project.code-workspace
