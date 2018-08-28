@@ -4,7 +4,7 @@
 #### Supervisor: J. Buhmann, Advisor: D. Miladinovic
 #### ETH Zurich - Machine Learning Institute
 
-In this semester project, we show how graph neural models can be applied on multi-frequency brain connectivity data derived from MEG recordings in the context of sleep stage classification. 
+In this semester project, we show how graph neural models can be applied on multi-frequency brain connectivity data derived from MEG recordings in the context of binary sleep stage classification. 
 
 This repository contains the code associated to this project. It contains all the necessary files to:
  1. Build the numpy feature matrix from the original matlab files
