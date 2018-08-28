@@ -63,9 +63,9 @@ These numpy array are used to create the final plots in the report (see iPython 
 
 If `gcn` is included in the estimator list it also contains the train/validation loss and balanced accuracy plots for each fold for each cross-validation setting. 
 Example of file names: 
-     * `_across_testsubj_S04_bal_acc.png`corresponds the balanced accuracy evolution for across-subject cross-validation where the test fold was subject 4. 
-    * `_within_8_subjects_fold_3_loss.png` the training and validation loss plot for fold 3 in within-all-subjects cross-validation.
-    * `_within_subj_S05_fold_2_bal_acc.png` balanced accuracy evolution for training and validation set for fold 2 of the within-subject-S05 cross-validation.
+* `_across_testsubj_S04_bal_acc.png`corresponds the balanced accuracy evolution for across-subject cross-validation where the test fold was subject 4. 
+* `_within_8_subjects_fold_3_loss.png` the training and validation loss plot for fold 3 in within-all-subjects cross-validation.
+* `_within_subj_S05_fold_2_bal_acc.png` balanced accuracy evolution for training and validation set for fold 2 of the within-subject-S05 cross-validation.
  
  
 ## Graph classification network files
@@ -86,15 +86,8 @@ Two network definition class. Each of these classes contains one `init` method a
 This file defines the training loop, a single training step and a single validation step. This is the main helper file for
 the fit/predict functions in the `GCN_estimator.py` file.
 
-* `training_step`: defines a single training step for one batch of observations. 1. Computes the Ahat matrix for each frequency band, for each observation in the batch.
-2. Gets the outputs from the network with this input
-3. Apply the optimizer
-4. Compute the training balanced accuracy over the batch
- * `val_step`: defines a single validation step for the validation set.
-        1. Computes the Ahat matrix for each frequency band
-           for each observation in the batch.
-        2. Gets the outputs from the network with this input
-        3. Compute the validation balanced accuracy and loss over the batch
+* `training_step`: defines a single training step for one batch of observations.1. Computes the Ahat matrix for each frequency band, for each observation in the batch. 2. Gets the outputs from the network with this input 3. Apply the optimizer 4. Compute the training balanced accuracy over the batch
+ * `val_step`: defines a single validation step for the validation set. 1. Computes the Ahat matrix for each frequency band for each observation in the batch. 2. Gets the outputs from the network with this input 3. Compute the validation balanced accuracy and loss over the batch.
 
 * `training_loop` function that runs the training loop and saves the plots of the training and validation loss and balanced accuracy. Assumes that standard frequency band aggregation preprocessing step has been performed for the feature matrix i.e. expects an input matrix of size `[ntrain, 5*nchannels]`. 
 
