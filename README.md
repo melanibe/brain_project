@@ -3,7 +3,7 @@
 
 This repository contains the code associated to the `report.pdf` of the project. It contains all necessary files to build the numpy feature matrix from the original matlab files, to construct and train the neural network and to run the final experiments for which to results are presented in the report.
 
-This readme presents the files and the functions they contain. Every function and its argument is documented precisely in the code.
+This readme presents the files and the functions they contain. Every function and its arguments is documented precisely in the code.
 
 ## Build feature matrix from original matlab files 
 Use the file `build_features.py` to compute and save the features matrix needed for the experiments. 
@@ -79,4 +79,25 @@ Both custom cross-validation functions take the same input arguments.
 
 
 ### Running the experiments
+The `classification_exp.py` is the main file to run the experiments described in the report. In the initialization phase, it creates a subfolder in the `runs` directory where the logger and the eventual plots produce during the run of the file are saved. The estimators are then initialized. Finally all three cross-validation settings (i.e. within-one-single subject, within-all subjects CV and across-subjects CV) are run. 
 
+Several console arguments are available to change the parameters of the experiments without having to modify the code. 
+Run `classification_exp.py` with the following console arguments (optional):
+ - `-est` a list of estimators names. Choose among 'uniform' (dummy classifier, random prediction between class 1 and 0), 'constant' (dummy classifier always predicts class 0), 'gcn' (GCN_estimator, the model proposed in the report), 'pcasvm' (PCA+SVM pipeline described as the first baseline in the report), 'rf' (SelectPercentile+RandomForestClassifier pipeline, second baseline in the report). If not specified the file uses ['gcn', 'rf', 'pcasvm']
+ - `-up` whether to use upsampling or not. If not specified the file uses 'False'.
+ - `-t` type of frequency band aggregation to use. Use obligatory 'std' in 'gcn' is in your estimator list. Otherwise can also use 'one' aggregation (see note in previous section).
+ - `-j` number of jobs to use for the sklearn baselines.
+ Specific options for `gcn` estimator:
+ - `-s` number of training steps to use
+ - `-h1` dimension of the first hidden layer in the node GCN
+ - `-h2` dimension of the second hidden layer in the node GCN
+ - `-out` dimension of the node embeddings (i.e. dimension of the output layer of the node GCN)
+ 
+ Some examples of commands:
+ * To run all the experiments of the report:
+  - First `python classification_exp.py` without any parameters runs the experiments for GCN, RF without upsampling and PCA SVM without upsampling.
+  - Second `python classification_exp.py -est rf pcasvm -up True` to run the experiments for the baselines with upsampling. 
+ * To run the experiments just with the Graph neural network using a customized architecture and 300 training steps:
+ `python classification_exp.py -est gcn -h1 32 -h2 64 -out 128 -s 300`
+ 
+ 
