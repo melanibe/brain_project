@@ -1,12 +1,12 @@
 import numpy as np
 import torch
 from sklearn.base import BaseEstimator, ClassifierMixin
+from torch.nn.functional import softmax
 
 from siamese_gcn.model import GraphClassificationNet
 from siamese_gcn.train_utils import training_loop
 from siamese_gcn.data_utils import ToTorchDataset, \
                                    data_to_matrices
-
 
 """ This file defines a wrapper class for the GCN.
 This is necessary in order to use this network just as
@@ -121,6 +121,6 @@ class GCN_estimator_wrapper(BaseEstimator, ClassifierMixin):
             for data in testloader:
                 X, A1, A2, A3, A4, A5 = data_to_matrices(data)
                 outputs = self.gcn(X, A1, A2, A3, A4, A5)
-                proba.append(outputs.data.cpu().numpy())
+                proba.append(softmax(outputs).data.cpu().numpy())
         out_proba = np.asarray(np.concatenate(proba, 0))
         return(out_proba)
